@@ -494,8 +494,7 @@ function binaTabelDewan(hasilDewan){
       body+=`<tr><td style="font-weight:700">W${w.bil}</td><td style="color:#607D8B">${w.mula}–${w.tamat}</td><td style="font-weight:600;color:#1E88E5">${namaList}</td></tr>`;
     }
   });
-  let bebanHtml='<div style="margin-top:8px;line-height:2">'+Object.entries(hasilDewan.beban).sort((a,b)=>b[1]-a[1]).map(([n,b])=>`<span class="beban-chip" style="background:#FFE0B2;color:#E65100">${pendekNama(n)}: ${b}W jaga · ${WM.length-b}W rehat</span>`).join('')+'</div>';
-  return `<div class="scroll-x"><table class="jt"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div><div style="font-size:9px;color:#90A4AE;margin-top:4px">👮 ${hasilDewan.guruDewan.length} guru jaga Dewan bergilir · 2 guru setiap waktu · semua ada ruang rehat</div>${bebanHtml}`;
+  return `<div class="scroll-x"><table class="jt"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div><div style="font-size:9px;color:#90A4AE;margin-top:4px">👮 ${hasilDewan.guruDewan.length} guru jaga Dewan bergilir · 2 guru setiap waktu · semua ada ruang rehat</div>`;
 }
 
 function janaInfografik(){
@@ -517,7 +516,7 @@ function janaInfografik(){
 
   if(!kritikal){
     _jadualDewanSimpan=null;
-    const hasil=agihAdil(kelasKosong,reliefPool,2,1);
+    const hasil=agihAdil(kelasKosong,reliefPool,2,0);
     jadualSemasa={jadual:hasil.jadual,kelas:kelasKosong};
     const amaranHtml=binaAmaran(hasil.amaranKelas,hasil.beban);
     isi=kantinHtml+(kelasKosong.length===0?'<div style="text-align:center;padding:20px;color:#9E9E9E;font-style:italic">✅ Tiada guru tidak hadir — semua kelas ada guru.</div>':`${amaranHtml}<div class="info-stitle">📋 Jadual Relief Ikut Waktu (Boleh Edit)</div>${binaTabel(kelasKosong,hasil.jadual,reliefPool)}<div class="info-stitle">⚖️ Beban Guru Relief (Adil + Rehat)</div><div id="beban-box">${binaBeban(hasil.beban)}</div>`);
@@ -526,8 +525,8 @@ function janaInfografik(){
     const kelasT2=kelasKosong.filter(k=>k.tahap===2);
 
     // ENJIN BERSEPADU: Dewan + Kelas Tahap 1 diimbang sebagai SATU kolam guru
-    // Dewan perlu 2 guru/waktu (bergilir). Semua guru kongsi beban sama rata.
-    const hasil=agihBersepadu(kelasT1, 2, reliefPool, 2, 1);
+    // Toleransi 0 = keadilan maksimum (beza beban hanya 1 waktu)
+    const hasil=agihBersepadu(kelasT1, 2, reliefPool, 2, 0);
     jadualSemasa={jadual:hasil.jadualKelas,kelas:kelasT1};
 
     // Tukar format jadualDewan untuk paparan & tab per-guru
