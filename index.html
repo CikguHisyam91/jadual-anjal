@@ -323,23 +323,51 @@ function renderUrus(){
 
 // ====== ENJIN AGIHAN ======
 function fokusBoleh(g,k){if(g.fokus==='aras_bawah')return k.aras==='Bawah';if(g.fokus==='1')return k.tahap===1;if(g.fokus==='2')return k.tahap===2;return true;}
-function agihAdil(kelasKosong,guruRelief,minRehat){
+// Bahagikan 10 waktu mengajar kepada blok (saiz 2 = 1 jam, saiz 1 = 30 minit)
+function buatBlok(saizBlok){
+  const pagi=[1,2,3,4,5],petang=[7,8,9,10,11],blok=[];
+  for(let i=0;i<pagi.length;i+=saizBlok)blok.push(pagi.slice(i,i+saizBlok));
+  for(let i=0;i<petang.length;i+=saizBlok)blok.push(petang.slice(i,i+saizBlok));
+  return blok;
+}
+
+// ENJIN AGIHAN BLOK: guru kekal dalam kelas secara berterusan (blok), beban adil
+// saizBlok: 2 = guru masuk 1 jam, 1 = 30 minit. toleransi: imbang adil vs kesinambungan
+function agihAdil(kelasKosong,guruRelief,saizBlok,toleransi){
+  saizBlok=saizBlok||2; toleransi=(toleransi!==undefined)?toleransi:1;
   const beban={},jadual={};
   guruRelief.forEach(g=>beban[g.nama]=0);
   kelasKosong.forEach(k=>jadual[k.nama]={});
-  const maks=WM.length-minRehat;
-  WM.forEach(w=>{
-    const pakai=new Set();
+  const blokSenarai=buatBlok(saizBlok);
+  const amaranKelas=new Set(); // kelas yang ada waktu tanpa guru
+
+  blokSenarai.forEach((blok,bi)=>{
+    const pakai=new Set(); // guru yang dah ditugaskan dalam blok ini (elak pertindihan)
     kelasKosong.forEach(k=>{
       const atas=k.aras!=='Bawah';
-      let calon=guruRelief.filter(g=>{if(pakai.has(g.nama))return false;if(atas&&g.slipDisc)return false;if(!fokusBoleh(g,k))return false;if(beban[g.nama]>=maks)return false;return true;});
-      if(calon.length===0)calon=guruRelief.filter(g=>{if(pakai.has(g.nama))return false;if(atas&&g.slipDisc)return false;if(!fokusBoleh(g,k))return false;return true;});
-      if(calon.length===0){jadual[k.nama][w]='—';return;}
-      calon.sort((a,b)=>beban[a.nama]-beban[b.nama]);
-      const p=calon[0];jadual[k.nama][w]=p.nama;beban[p.nama]++;pakai.add(p.nama);
+      let calon=guruRelief.filter(g=>{
+        if(pakai.has(g.nama))return false;
+        if(atas&&g.slipDisc)return false;
+        if(!fokusBoleh(g,k))return false;
+        return true;
+      });
+      if(calon.length===0){blok.forEach(w=>jadual[k.nama][w]='—');amaranKelas.add(k.nama);return;}
+      const bebanMin=Math.min(...calon.map(g=>beban[g.nama]));
+      let pilih=null;
+      // Kekalkan guru blok sebelum (kesinambungan) jika bebannya tak melebihi toleransi
+      if(bi>0){
+        const gSebelum=jadual[k.nama][blokSenarai[bi-1][0]];
+        if(gSebelum&&gSebelum!=='—'){
+          const gs=calon.find(g=>g.nama===gSebelum);
+          if(gs&&beban[gs.nama]<=bebanMin+toleransi)pilih=gs;
+        }
+      }
+      if(!pilih){calon.sort((a,b)=>beban[a.nama]-beban[b.nama]);pilih=calon[0];}
+      blok.forEach(w=>{jadual[k.nama][w]=pilih.nama;beban[pilih.nama]++;});
+      pakai.add(pilih.nama);
     });
   });
-  return {jadual,beban};
+  return {jadual,beban,amaranKelas:[...amaranKelas]};
 }
 function pendekNama(nama){
   if(nama==='—'||!nama)return '—';
@@ -411,9 +439,10 @@ function janaInfografik(){
   }
 
   if(!kritikal){
-    const hasil=agihAdil(kelasKosong,reliefPool,2);
+    const hasil=agihAdil(kelasKosong,reliefPool,2,1);
     jadualSemasa={jadual:hasil.jadual,kelas:kelasKosong};
-    isi=kantinHtml+(kelasKosong.length===0?'<div style="text-align:center;padding:20px;color:#9E9E9E;font-style:italic">✅ Tiada guru tidak hadir — semua kelas ada guru.</div>':`<div class="info-stitle">📋 Jadual Relief Ikut Waktu (Boleh Edit)</div>${binaTabel(kelasKosong,hasil.jadual,reliefPool)}<div class="info-stitle">⚖️ Beban Guru Relief (Adil + Rehat)</div><div id="beban-box">${binaBeban(hasil.beban)}</div>`);
+    const amaranHtml=binaAmaran(hasil.amaranKelas,hasil.beban);
+    isi=kantinHtml+(kelasKosong.length===0?'<div style="text-align:center;padding:20px;color:#9E9E9E;font-style:italic">✅ Tiada guru tidak hadir — semua kelas ada guru.</div>':`${amaranHtml}<div class="info-stitle">📋 Jadual Relief Ikut Waktu (Boleh Edit)</div>${binaTabel(kelasKosong,hasil.jadual,reliefPool)}<div class="info-stitle">⚖️ Beban Guru Relief (Adil + Rehat)</div><div id="beban-box">${binaBeban(hasil.beban)}</div>`);
   } else {
     const kelasT1=kelasKosong.filter(k=>k.tahap===1);
     const kelasT2=kelasKosong.filter(k=>k.tahap===2);
@@ -427,7 +456,7 @@ function janaInfografik(){
     // Kalau guru T1 tak cukup, kongsi balik
     const poolT1=guruT1.length>=kelasT1.length?guruT1:reliefPool;
 
-    const hasilT1=agihAdil(kelasT1,poolT1,2);
+    const hasilT1=agihAdil(kelasT1,poolT1,2,1);
     jadualSemasa={jadual:hasilT1.jadual,kelas:kelasT1};
 
     // Bina jadual giliran Dewan (siapa jaga waktu mana)
@@ -438,7 +467,8 @@ function janaInfografik(){
     dewan+=`</div></div>`;
     dewan+=`<div class="info-stitle">👮 Jadual Giliran Guru Jaga Dewan (Ikut Waktu)</div>${binaTabelDewan(jadualDewan)}`;
 
-    isi=kantinHtml+dewan+(kelasT1.length>0?`<div class="info-stitle">📋 Jadual Relief Kelas Tahap 1 (Boleh Edit)</div>${binaTabel(kelasT1,hasilT1.jadual,poolT1)}<div class="info-stitle">⚖️ Beban Guru Tahap 1 (Adil + Rehat)</div><div id="beban-box">${binaBeban(hasilT1.beban)}</div>`:'<div style="font-size:11px;color:#607D8B;padding:8px;background:#F5F7FA;border-radius:8px">✅ Semua kelas Tahap 1 ada guru.</div>');
+    const amaranT1=binaAmaran(hasilT1.amaranKelas,hasilT1.beban);
+    isi=kantinHtml+dewan+amaranT1+(kelasT1.length>0?`<div class="info-stitle">📋 Jadual Relief Kelas Tahap 1 (Boleh Edit)</div>${binaTabel(kelasT1,hasilT1.jadual,poolT1)}<div class="info-stitle">⚖️ Beban Guru Tahap 1 (Adil + Rehat)</div><div id="beban-box">${binaBeban(hasilT1.beban)}</div>`:'<div style="font-size:11px;color:#607D8B;padding:8px;background:#F5F7FA;border-radius:8px">✅ Semua kelas Tahap 1 ada guru.</div>');
   }
 
   const html=`
@@ -515,7 +545,27 @@ function kiraSemulaBeban(){
 function binaBeban(beban){
   const e=Object.entries(beban).filter(([n,b])=>b>0).sort((a,b)=>b[1]-a[1]);
   if(e.length===0)return '<div style="font-size:11px;color:#9E9E9E">Tiada guru ditugaskan.</div>';
-  return `<div style="line-height:2">${e.map(([n,b])=>`<span class="beban-chip">${pendekNama(n)}: ${b}W · ${WM.length-b}W rehat</span>`).join('')}</div>`;
+  return `<div style="line-height:2">${e.map(([n,b])=>{
+    const rehat=WM.length-b;
+    const adaRehat=rehat>=2;
+    const warna=adaRehat?'':'background:#FFEBEE;color:#C62828';
+    const ikon=adaRehat?'':'⚠️ ';
+    return `<span class="beban-chip" style="${warna}">${ikon}${pendekNama(n)}: ${b}W · ${rehat}W rehat</span>`;
+  }).join('')}</div>`;
+}
+
+// Papar amaran jika ada kelas kosong atau guru tiada rehat
+function binaAmaran(amaranKelas,beban){
+  let html='';
+  if(amaranKelas&&amaranKelas.length>0){
+    html+=`<div class="info-alert" style="background:#FFEBEE;border-color:#E53935;color:#B71C1C;margin-bottom:10px">🚨 <b>PERHATIAN SEGERA:</b> Kelas berikut TIADA guru pada sesetengah waktu — <b>${amaranKelas.join(', ')}</b>. Guru relief tidak mencukupi. Sila gabung kelas atau dapatkan guru tambahan.</div>`;
+  }
+  // Semak guru yang tiada rehat (kerja >8 waktu)
+  const tiadaRehat=Object.entries(beban).filter(([n,b])=>b>0&&(WM.length-b)<2).map(([n])=>pendekNama(n));
+  if(tiadaRehat.length>0){
+    html+=`<div class="info-alert" style="background:#FFF3E0;border-color:#FB8C00;color:#E65100;margin-bottom:10px">⚠️ <b>BEBAN TINGGI:</b> Guru berikut hampir tiada waktu rehat — <b>${tiadaRehat.join(', ')}</b>. Pertimbangkan agih semula jika boleh.</div>`;
+  }
+  return html;
 }
 
 // EKSPORT
