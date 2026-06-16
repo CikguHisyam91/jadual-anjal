@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jadual Anjal – SK King Edward VII (1)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Poppins:wght@700;900&display=swap');
+
+  :root {
+    --navy: #0D1B2A;
+    --biru: #1E88E5;
+    --merah: #E53935;
+    --kuning: #FDD835;
+    --hijau: #43A047;
+    --oren: #FB8C00;
+    --bg: #F0F4F8;
+    --putih: #FFFFFF;
+    --kelabu: #90A4AE;
+    --teks: #1A2332;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--teks);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #0D1B2A 0%, #1a3a5c 60%, #1E88E5 100%);
+    padding: 20px 28px 16px;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; }
+  .header-sekolah { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; }
+  .header-title { font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 900; line-height: 1.1; margin-top: 2px; }
+  .header-title span { color: var(--kuning); }
+  .tarikh-box {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 12px;
+    text-align: right;
+    backdrop-filter: blur(4px);
+  }
+  .tarikh-box .hari { font-size: 16px; font-weight: 700; color: var(--kuning); }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    display: flex;
+    background: var(--navy);
+    border-bottom: 3px solid var(--biru);
+  }
+  .stat {
+    flex: 1;
+    padding: 10px 8px;
+    text-align: center;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    cursor: default;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Poppins', sans-serif;
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .stat-lbl { font-size: 9px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; }
+
+  /* ── MOD BANNER ── */
+  .mod-banner {
+    margin: 16px 20px 0;
+    border-radius: 12px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.4s;
+  }
+  .mod-normal { background: linear-gradient(90deg, #1b5e20, #43A047); color: white; }
+  .mod-kritikal { background: linear-gradient(90deg, #b71c1c, #E53935); color: white; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.85} }
+  .mod-icon { font-size: 24px; }
+  .mod-text-sub { font-size: 11px; font-weight: 400; opacity: 0.9; margin-top: 2px; }
+  .mod-badge {
+    margin-left: auto;
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* ── SLIP DISC ALERT ── */
+  .slip-alert {
+    margin: 10px 20px 0;
+    background: #fff8e1;
+    border: 2px solid var(--oren);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #e65100;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main { padding: 16px 20px 100px; }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--kelabu);
+    margin: 18px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #CBD5E0;
+  }
+
+  /* ── GRID GURU ── */
+  .guru-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 8px;
+  }
+
+  .guru-kad {
+    background: white;
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    position: relative;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    user-select: none;
+  }
+  .guru-kad:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+  .guru-kad:active { transform: scale(0.97); }
+
+  .guru-kad.hadir {
+    border-color: #C8E6C9;
+    background: #F1F8E9;
+  }
+  .guru-kad.absent {
+    border-color: var(--merah);
+    background: #FFEBEE;
+    animation: absentFlash 0.3s ease;
+  }
+  @keyframes absentFlash {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
+  .guru-status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    position: absolute;
+    top: 8px; right: 8px;
+    transition: background 0.2s;
+  }
+  .hadir .guru-status-dot { background: var(--hijau); }
+  .absent .guru-status-dot { background: var(--merah); }
+
+  .guru-nama {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--teks);
+    line-height: 1.3;
+    padding-right: 14px;
+  }
+  .guru-jawatan {
+    font-size: 9px;
+    color: var(--kelabu);
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .guru-slipdisc {
+    font-size: 9px;
+    color: var(--oren);
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .absent .guru-nama { color: var(--merah); }
+
+  /* ── BUTANG JANA ── */
+  .fab {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    left: 20px;
+    background: linear-gradient(135deg, #1E88E5, #0D47A1);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    padding: 16px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 24px rgba(30,136,229,0.5);
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 90;
+  }
+  .fab:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(30,136,229,0.6); }
+  .fab:active { transform: scale(0.98); }
+  .fab:disabled { background: #90A4AE; box-shadow: none; cursor: not-allowed; }
+
+  /* ── MODAL INFOGRAFIK ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    overflow-y: auto;
+    padding: 16px;
+  }
+  .modal-overlay.aktif { display: flex; flex-direction: column; align-items: center; }
+
+  .modal-box {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 840px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    margin: auto;
+  }
+
+  /* ── INFOGRAFIK DALAM MODAL ── */
+  .info-header {
+    background: linear-gradient(135deg, #0D1B2A, #1E88E5);
+    padding: 20px 24px;
+    color: white;
+  }
+  .info-sekolah { font-size: 10px; letter-spacing: 2px; opacity: 0.7; text-transform: uppercase; }
+  .info-title { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 900; margin: 4px 0; }
+  .info-meta { font-size: 12px; opacity: 0.85; }
+
+  .info-stats {
+    display: flex;
+    background: #0D1B2A;
+    border-bottom: 3px solid #1E88E5;
+  }
+  .info-stat {
+    flex: 1;
+    padding: 12px 8px;
+    text-align: center;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    color: white;
+  }
+  .info-stat:last-child { border-right: none; }
+  .info-stat-num { font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 900; line-height: 1; }
+  .info-stat-lbl { font-size: 9px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  .info-mod {
+    padding: 12px 24px;
+    font-weight: 700;
+    font-size: 15px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .info-mod-normal { background: linear-gradient(90deg,#1b5e20,#43A047); }
+  .info-mod-kritikal { background: linear-gradient(90deg,#b71c1c,#E53935); }
+
+  .info-body { padding: 18px 24px; }
+
+  .info-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #607D8B;
+    border-left: 4px solid #1E88E5;
+    padding-left: 10px;
+    margin: 14px 0 10px;
+  }
+
+  .info-alert {
+    background: #fff8e1;
+    border: 2px solid var(--oren);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #e65100;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+
+  /* Jadual agihan */
+  .agihan-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .agihan-table th {
+    background: #1a237e;
+    color: white;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .agihan-table td { padding: 8px 10px; border-bottom: 1px solid #ECEFF1; vertical-align: top; }
+  .agihan-table tr:nth-child(even) td { background: #F8FAFC; }
+
+  .badge {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .badge-dewan { background: #FFEBEE; color: #C62828; }
+  .badge-relief { background: #E3F2FD; color: #1565C0; }
+  .badge-serap { background: #F3E5F5; color: #6A1B9A; }
+
+  /* Jadual waktu dalam modal */
+  .waktu-grid { display: flex; gap: 14px; }
+  .waktu-table { flex: 0 0 200px; }
+  .guru-hadir-list { flex: 1; }
+  .waktu-tbl { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .waktu-tbl td { padding: 5px 8px; border-bottom: 1px solid #ECEFF1; }
+  .waktu-rehat td { background: #FFF9C4; font-weight: 700; color: #E65100; }
+
+  .info-footer {
+    background: #37474F;
+    color: rgba(255,255,255,0.8);
+    padding: 10px 24px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+
+  /* ── MODAL BUTANG ── */
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    padding: 14px 16px;
+    background: #F5F5F5;
+    border-top: 1px solid #E0E0E0;
+  }
+  .btn-cetak {
+    flex: 1;
+    padding: 12px;
+    background: #1a237e;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .btn-tutup {
+    padding: 12px 20px;
+    background: #ECEFF1;
+    color: #546E7A;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* ── PRINT ── */
+  @media print {
+    body > *:not(#area-cetak) { display: none !important; }
+    #area-cetak { display: block !important; }
+    .modal-actions { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-sekolah">SK King Edward VII (1) · Taiping, Perak</div>
+      <div class="header-title">JADUAL <span>ANJAL</span></div>
+    </div>
+    <div class="tarikh-box">
+      <div class="hari" id="hari-txt"></div>
+      <div id="tarikh-txt" style="font-size:11px;opacity:0.8"></div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num" id="stat-hadir" style="color:#43A047">–</div>
+    <div class="stat-lbl">Hadir</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="stat-absent" style="color:#E53935">–</div>
+    <div class="stat-lbl">Tidak Hadir</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="stat-relief" style="color:#1E88E5">–</div>
+    <div class="stat-lbl">Relief</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" style="color:#FB8C00">18</div>
+    <div class="stat-lbl">Kelas</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- MOD BANNER -->
+  <div class="mod-banner mod-normal" id="mod-banner">
+    <div class="mod-icon">✅</div>
+    <div>
+      <div id="mod-title">MOD NORMAL — RELIEF BIASA</div>
+      <div class="mod-text-sub" id="mod-sub">Semua guru mencukupi untuk agihan relief</div>
+    </div>
+    <div class="mod-badge" id="mod-badge">NORMAL</div>
+  </div>
+
+  <!-- SLIP DISC ALERT -->
+  <div class="slip-alert">
+    ⚠️ <strong>Cikgu Sarina & Cikgu Tan Fong Lin</strong> — Slip Disc. Tugaskan ke <strong>Aras Bawah SAHAJA</strong>.
+  </div>
+
+  <!-- GRID GURU -->
+  <div class="section-title">👆 Klik nama guru yang TIDAK HADIR hari ini</div>
+  <div class="guru-grid" id="guru-grid"></div>
+
+  <!-- RESET -->
+  <div style="text-align:center;margin-top:14px">
+    <button onclick="resetSemua()" style="background:none;border:1px solid #CBD5E0;border-radius:8px;padding:8px 18px;color:#607D8B;font-size:12px;cursor:pointer">🔄 Reset Semua</button>
+  </div>
+
+</div>
+
+<!-- FAB JANA -->
+<button class="fab" onclick="janaInfografik()" id="fab-btn">
+  <span>📋</span> Jana Jadual Anjal
+</button>
+
+<!-- MODAL INFOGRAFIK -->
+<div class="modal-overlay" id="modal" onclick="tutupModal(event)">
+  <div class="modal-box" id="modal-box">
+    <div id="area-cetak"></div>
+    <div class="modal-actions">
+      <button class="btn-cetak" onclick="cetakInfografik()">🖨️ CETAK INFOGRAFIK</button>
+      <button class="btn-tutup" onclick="document.getElementById('modal').classList.remove('aktif')">✕ Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA GURU ──
+const GURU = [
+  { nama:'EN. MALIM PERMAN BIN RAMLI', jawatan:'Guru Besar', slipDisc:false },
+  { nama:'PN. RAMLAH BINTI OSMAN', jawatan:'PK Pentadbiran', slipDisc:false },
+  { nama:'EN. AZIZAN BIN MAT JUSOH', jawatan:'PK HEM', slipDisc:false },
+  { nama:'EN. MUHAMMAD NORHISYAM BIN SHAMSUDIN', jawatan:'PK Kokurikulum', slipDisc:false },
+  { nama:'AHMAD TARMIZI BIN MD HIJAZI', jawatan:'Guru', slipDisc:false },
+  { nama:'AKMATUL IRA BINTI MOHD NOOR', jawatan:'Guru', slipDisc:false },
+  { nama:'ARIES DEEN LIM BIN JEFRI LIM', jawatan:'Guru', slipDisc:false },
+  { nama:'AZLINA BINTI MD YUSOFF', jawatan:'Guru', slipDisc:false },
+  { nama:'FAIZAYUSNI BIN AHMAD', jawatan:'Guru', slipDisc:false },
+  { nama:'HAZYZYIZUAN BIN ABU HASSAN', jawatan:'Guru', slipDisc:false },
+  { nama:'IMRAN BIN SUPIN', jawatan:'Guru', slipDisc:false },
+  { nama:'JASRIZAL BIN SAAD', jawatan:'Guru', slipDisc:false },
+  { nama:'JUNAIDAH BINTI BUDIN', jawatan:'Guru', slipDisc:false },
+  { nama:'KALA DEVI A/P ROGORNARTHUM', jawatan:'Guru', slipDisc:false },
+  { nama:'KALAIVANI A/P MURUGIAH', jawatan:'Guru', slipDisc:false },
+  { nama:'MAT NAZRI BIN MAT KHALIL', jawatan:'Guru', slipDisc:false },
+  { nama:'MOHD NAZAR BIN HAMID', jawatan:'Guru', slipDisc:false },
+  { nama:'MOHD YAZID NAJMI BIN MUHAMAD ALI', jawatan:'Guru', slipDisc:false },
+  { nama:'MUHAMMAD FATTAH BIN OTHMAN', jawatan:'Guru', slipDisc:false },
+  { nama:'MUHAMMAD RAZID BIN RAZALI', jawatan:'Guru', slipDisc:false },
+  { nama:'MUHAMMAD ALI FIKRI BIN MOHD JUAINI', jawatan:'Guru', slipDisc:false },
+  { nama:'MUHAMMAD HAYAZI BIN AYOB', jawatan:'Guru', slipDisc:false },
+  { nama:'NIK AINA NAJIHAH BINTI NIK MOHD NASIR', jawatan:'Guru', slipDisc:false },
+  { nama:'NOR AISYAH BINTI MOHD NOOR', jawatan:'Guru', slipDisc:false },
+  { nama:'NORMALA BINTI SALLEH', jawatan:'Guru', slipDisc:false },
+  { nama:'NORHAYATI BINTI MAT ISA', jawatan:'Guru', slipDisc:false },
+  { nama:'NUR AKMAR BINTI MD ARSHAD', jawatan:'Guru', slipDisc:false },
+  { nama:'NUR AIN NAJIHAH BINTI ZAINAL', jawatan:'Guru', slipDisc:false },
+  { nama:'NUR AQILAH SYAMIMI BINTI MOHAMMAD ROZALI', jawatan:'Guru', slipDisc:false },
+  { nama:'NURUL HUSNA BINTI ABDUL MANAF', jawatan:'Guru', slipDisc:false },
+  { nama:'SANGEETA A/P CHINATAMBI', jawatan:'Guru', slipDisc:false },
+  { nama:'SARINA BINTI HASHIM', jawatan:'Guru', slipDisc:true },
+  { nama:'SITI AISYAH BINTI MOHD YUSOFF', jawatan:'Guru', slipDisc:false },
+  { nama:'SUGANTHI A/P LETCHAMANAN', jawatan:'Guru', slipDisc:false },
+  { nama:'WAZNAH BINTI MAMAT', jawatan:'Guru', slipDisc:false },
+  { nama:'YAZHINI A/P GUNASAIGARAN', jawatan:'Guru', slipDisc:false },
+  { nama:'ZULFAA WAHIIDA BINTI MOHD FADZIL', jawatan:'Guru', slipDisc:false },
+  { nama:'ABDUL MUTTAQIN BIN SAHAROM', jawatan:'Guru Data/Bestari', slipDisc:false },
+  { nama:'NORIZAN BINTI AWANG', jawatan:'Guru Perpustakaan', slipDisc:false },
+  { nama:'ALMASIAH BINTI ABDUL KHANIP', jawatan:'Guru Kaunseling', slipDisc:false },
+  { nama:'TAN FONG LIN', jawatan:'Guru Bahasa Cina', slipDisc:true },
+];
+
+const WAKTU = [
+  {bil:1, mula:'7:40', tamat:'8:10'},
+  {bil:2, mula:'8:10', tamat:'8:40'},
+  {bil:3, mula:'8:40', tamat:'9:10'},
+  {bil:4, mula:'9:10', tamat:'9:40'},
+  {bil:5, mula:'9:40', tamat:'10:10'},
+  {bil:6, mula:'10:10', tamat:'10:30', rehat:true},
+  {bil:7, mula:'10:30', tamat:'11:00'},
+  {bil:8, mula:'11:00', tamat:'11:30'},
+  {bil:9, mula:'11:30', tamat:'12:00'},
+  {bil:10, mula:'12:00', tamat:'12:30'},
+  {bil:11, mula:'12:30', tamat:'1:00'},
+];
+
+const KELAS = [
+  {nama:'1 Brilliant',aras:'Bawah',tahap:1},{nama:'1 Diligent',aras:'Bawah',tahap:1},{nama:'1 Excellent',aras:'Bawah',tahap:1},
+  {nama:'2 Brilliant',aras:'Bawah',tahap:1},{nama:'2 Diligent',aras:'Bawah',tahap:1},{nama:'2 Excellent',aras:'Tingkat 2',tahap:1},
+  {nama:'3 Brilliant',aras:'Bawah',tahap:1},{nama:'3 Diligent',aras:'Bawah',tahap:1},{nama:'3 Excellent',aras:'Tingkat 3',tahap:1},
+  {nama:'4 Brilliant',aras:'Tingkat 1',tahap:2},{nama:'4 Diligent',aras:'Tingkat 1',tahap:2},{nama:'4 Excellent',aras:'Tingkat 2',tahap:2},
+  {nama:'5 Brilliant',aras:'Tingkat 1',tahap:2},{nama:'5 Diligent',aras:'Tingkat 2',tahap:2},{nama:'5 Excellent',aras:'Tingkat 2',tahap:2},
+  {nama:'6 Brilliant',aras:'Tingkat 1',tahap:2},{nama:'6 Diligent',aras:'Tingkat 1',tahap:2},{nama:'6 Excellent',aras:'Tingkat 1',tahap:2},
+];
+
+// ── STATE ──
+const absentSet = new Set();
+
+// ── TARIKH ──
+function setTarikh() {
+  const now = new Date();
+  const hari = ['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'][now.getDay()];
+  const bulan = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogs','Sep','Okt','Nov','Dis'][now.getMonth()];
+  document.getElementById('hari-txt').textContent = hari;
+  document.getElementById('tarikh-txt').textContent = `${now.getDate()} ${bulan} ${now.getFullYear()}`;
+}
+
+function getTarikhFormatted() {
+  const now = new Date();
+  const d = String(now.getDate()).padStart(2,'0');
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  return `${d}/${m}/${now.getFullYear()}`;
+}
+
+function getMasaJana() {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+}
+
+// ── BINA GRID GURU ──
+function binaGrid() {
+  const grid = document.getElementById('guru-grid');
+  grid.innerHTML = '';
+  GURU.forEach((g, i) => {
+    const isAbsent = absentSet.has(i);
+    const kad = document.createElement('div');
+    kad.className = 'guru-kad ' + (isAbsent ? 'absent' : 'hadir');
+    kad.onclick = () => toggleGuru(i);
+    kad.innerHTML = `
+      <div class="guru-status-dot"></div>
+      <div class="guru-nama">${g.nama}</div>
+      <div class="guru-jawatan">${g.jawatan}</div>
+      ${g.slipDisc ? '<div class="guru-slipdisc">⚠️ Slip Disc</div>' : ''}
+    `;
+    grid.appendChild(kad);
+  });
+  kemaskiniStats();
+}
+
+// ── TOGGLE GURU ──
+function toggleGuru(i) {
+  if (absentSet.has(i)) absentSet.delete(i);
+  else absentSet.add(i);
+  binaGrid();
+}
+
+// ── RESET ──
+function resetSemua() {
+  if (absentSet.size === 0) return;
+  if (confirm('Reset semua pilihan?')) {
+    absentSet.clear();
+    binaGrid();
+  }
+}
+
+// ── KEMASKINI STATS ──
+function kemaskiniStats() {
+  const jumlahAbsent = absentSet.size;
+  const jumlahHadir = GURU.length - jumlahAbsent;
+  const jumlahRelief = GURU.filter((g,i) => !absentSet.has(i) && g.jawatan === 'Guru').length;
+  const modKritikal = jumlahAbsent > 10;
+
+  document.getElementById('stat-hadir').textContent = jumlahHadir;
+  document.getElementById('stat-absent').textContent = jumlahAbsent;
+  document.getElementById('stat-relief').textContent = jumlahRelief;
+
+  const banner = document.getElementById('mod-banner');
+  banner.className = 'mod-banner ' + (modKritikal ? 'mod-kritikal' : 'mod-normal');
+  document.getElementById('mod-banner').querySelector('.mod-icon').textContent = modKritikal ? '🚨' : '✅';
+  document.getElementById('mod-title').textContent = modKritikal ? 'MOD KRITIKAL — GABUNG DEWAN DIAKTIFKAN' : 'MOD NORMAL — RELIEF BIASA';
+  document.getElementById('mod-sub').textContent = modKritikal ? 'Lebih 10 guru tiada — Tahap 2 berkumpul di Dewan' : 'Semua guru mencukupi untuk agihan relief';
+  document.getElementById('mod-badge').textContent = modKritikal ? 'KRITIKAL' : 'NORMAL';
+}
+
+// ── JANA INFOGRAFIK ──
+function janaInfografik() {
+  const guruAbsent = Array.from(absentSet).map(i => GURU[i]);
+  const guruHadir = GURU.filter((_,i) => !absentSet.has(i));
+  const reliefPool = guruHadir.filter(g => g.jawatan === 'Guru');
+  const modKritikal = absentSet.size > 10;
+  const tarikh = getTarikhFormatted();
+  const masa = getMasaJana();
+
+  // Agihan
+  const agihan = [];
+  let reliefIdx = 0;
+  guruAbsent.forEach(g => {
+    if (modKritikal) {
+      agihan.push({ absent: g.nama, tindakan: 'DEWAN', relief: '—', nota: 'Tahap 2 → Dewan. Tahap 1 → Arahan GPK.' });
+    } else {
+      if (reliefIdx < reliefPool.length) {
+        const r = reliefPool[reliefIdx++];
+        agihan.push({
+          absent: g.nama,
+          tindakan: 'RELIEF',
+          relief: r.nama + (r.slipDisc ? ' ⚠️' : ''),
+          nota: r.slipDisc ? 'Aras Bawah sahaja (Slip Disc)' : 'Boleh ke mana-mana kelas'
+        });
+      } else {
+        agihan.push({ absent: g.nama, tindakan: 'SERAP', relief: '—', nota: 'Murid serap ke kelas jiran' });
+      }
+    }
+  });
+
+  // Bina HTML infografik
+  const barisDewan = agihan.filter(a=>a.tindakan==='DEWAN').length;
+  const barisRelief = agihan.filter(a=>a.tindakan==='RELIEF').length;
+  const barisSerap = agihan.filter(a=>a.tindakan==='SERAP').length;
+
+  let rowsAgihan = agihan.length === 0
+    ? `<tr><td colspan="4" style="text-align:center;padding:16px;color:#9E9E9E;font-style:italic">✅ Tiada guru tidak hadir hari ini</td></tr>`
+    : agihan.map((a,i) => {
+        const bg = i%2===0?'#F8FAFC':'#fff';
+        const badgeClass = a.tindakan==='DEWAN'?'badge-dewan':a.tindakan==='RELIEF'?'badge-relief':'badge-serap';
+        const badgeLabel = a.tindakan==='DEWAN'?'🏛️ GABUNG DEWAN':a.tindakan==='RELIEF'?'📚 RELIEF':'🔄 SERAP';
+        return `<tr style="background:${bg}">
+          <td style="padding:7px 10px;border-bottom:1px solid #ECEFF1;font-size:11px;font-weight:700;color:#E53935">${a.absent}</td>
+          <td style="padding:7px 10px;border-bottom:1px solid #ECEFF1"><span class="badge ${badgeClass}">${badgeLabel}</span></td>
+          <td style="padding:7px 10px;border-bottom:1px solid #ECEFF1;font-size:11px;font-weight:600;color:#1565C0">${a.relief}</td>
+          <td style="padding:7px 10px;border-bottom:1px solid #ECEFF1;font-size:10px;color:#607D8B">${a.nota}</td>
+        </tr>`;
+      }).join('');
+
+  let rowsWaktu = WAKTU.map(w => {
+    const isRehat = w.rehat;
+    return `<tr class="${isRehat?'waktu-rehat':''}">
+      <td style="font-weight:${isRehat?'700':'500'};color:${isRehat?'#E65100':'#37474F'}">${isRehat?'☕ REHAT':'Waktu '+w.bil}</td>
+      <td style="color:#607D8B">${w.mula}–${w.tamat}</td>
+    </tr>`;
+  }).join('');
+
+  let rowsHadir = guruHadir.map((g,i) =>
+    `<tr style="background:${i%2===0?'#F8FAFC':'#fff'}">
+      <td style="padding:4px 8px;font-size:11px;font-weight:600;color:#212121;border-bottom:1px solid #ECEFF1">${g.nama}</td>
+      <td style="padding:4px 8px;font-size:10px;border-bottom:1px solid #ECEFF1;color:${g.slipDisc?'#E65100':'#43A047'}">${g.slipDisc?'⚠️ Slip Disc':'✅'}</td>
+    </tr>`
+  ).join('');
+
+  const html = `
+    <div class="info-header">
+      <div class="info-sekolah">SK KING EDWARD VII (1) · TAIPING, PERAK</div>
+      <div class="info-title">📋 JADUAL ANJAL HARIAN</div>
+      <div class="info-meta">Tarikh: ${tarikh} &nbsp;|&nbsp; Jana pada: ${masa} &nbsp;|&nbsp; Guru tidak hadir: ${absentSet.size} orang</div>
+    </div>
+    <div class="info-stats">
+      <div class="info-stat"><div class="info-stat-num" style="color:#43A047">${guruHadir.length}</div><div class="info-stat-lbl">Hadir</div></div>
+      <div class="info-stat"><div class="info-stat-num" style="color:#E53935">${absentSet.size}</div><div class="info-stat-lbl">Tidak Hadir</div></div>
+      <div class="info-stat"><div class="info-stat-num" style="color:#1E88E5">${reliefPool.length}</div><div class="info-stat-lbl">Relief Tersedia</div></div>
+      <div class="info-stat"><div class="info-stat-num" style="color:#FDD835">${barisDewan}</div><div class="info-stat-lbl">Kelas Dewan</div></div>
+      <div class="info-stat"><div class="info-stat-num" style="color:#43A047">${barisRelief}</div><div class="info-stat-lbl">Relief</div></div>
+      <div class="info-stat"><div class="info-stat-num" style="color:#FB8C00">${barisSerap}</div><div class="info-stat-lbl">Serap</div></div>
+    </div>
+    <div class="info-mod ${modKritikal?'info-mod-kritikal':'info-mod-normal'}">
+      <span style="font-size:20px">${modKritikal?'🚨':'✅'}</span>
+      <div>
+        <div>${modKritikal?'MOD KRITIKAL — GABUNG DEWAN DIAKTIFKAN':'MOD NORMAL — AGIHAN RELIEF BIASA'}</div>
+        <div style="font-size:11px;font-weight:400;opacity:0.9;margin-top:2px">${modKritikal?'Lebih 10 guru tiada · Tahap 2 berkumpul di Dewan Sekolah':'Agihan guru relief ke kelas yang tiada guru'}</div>
+      </div>
+    </div>
+    <div class="info-body">
+      <div class="info-alert">⚠️ <strong>Cikgu Sarina Binti Hashim & Cikgu Tan Fong Lin</strong> — Slip Disc. Tugaskan ke <strong>Aras Bawah SAHAJA</strong>.</div>
+      <div class="info-section-title">📌 Agihan Guru Tidak Hadir & Tindakan</div>
+      <table class="agihan-table">
+        <thead><tr><th>Guru Tidak Hadir</th><th>Tindakan</th><th>Guru Relief</th><th>Nota</th></tr></thead>
+        <tbody>${rowsAgihan}</tbody>
+      </table>
+      <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap">
+        <span class="badge badge-dewan">🏛️ GABUNG DEWAN</span>
+        <span class="badge badge-relief">📚 RELIEF</span>
+        <span class="badge badge-serap">🔄 SERAP</span>
+        <span style="font-size:10px;color:#90A4AE;margin-left:auto">Legend</span>
+      </div>
+
+      <div class="waktu-grid" style="margin-top:16px">
+        <div class="waktu-table">
+          <div class="info-section-title">🕐 Jadual Waktu</div>
+          <table class="waktu-tbl">
+            <tbody>${rowsWaktu}</tbody>
+          </table>
+        </div>
+        <div class="guru-hadir-list">
+          <div class="info-section-title">✅ Guru Hadir (${guruHadir.length})</div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px">
+            <tbody>${rowsHadir}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="info-footer">
+      <span>SK King Edward VII (1) Taiping · Sistem Jadual Anjal</span>
+      <span>Dicetak: ${tarikh}</span>
+    </div>
+  `;
+
+  document.getElementById('area-cetak').innerHTML = html;
+  document.getElementById('modal').classList.add('aktif');
+}
+
+// ── CETAK ──
+function cetakInfografik() { window.print(); }
+
+// ── TUTUP MODAL ──
+function tutupModal(e) {
+  if (e.target === document.getElementById('modal')) {
+    document.getElementById('modal').classList.remove('aktif');
+  }
+}
+
+// ── INIT ──
+setTarikh();
+binaGrid();
+</script>
+</body>
+</html>
