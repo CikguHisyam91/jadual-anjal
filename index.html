@@ -5,769 +5,558 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jadual Anjal – SK King Edward VII (1)</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Poppins:wght@700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Poppins:wght@700;900&display=swap');
+:root{
+  --navy:#0D1B2A;--biru:#1E88E5;--merah:#E53935;--kuning:#FDD835;
+  --hijau:#43A047;--oren:#FB8C00;--bg:#F0F4F8;--kelabu:#90A4AE;--teks:#1A2332;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--teks);min-height:100vh;}
 
-  :root {
-    --navy: #0D1B2A;
-    --biru: #1E88E5;
-    --merah: #E53935;
-    --kuning: #FDD835;
-    --hijau: #43A047;
-    --oren: #FB8C00;
-    --bg: #F0F4F8;
-    --putih: #FFFFFF;
-    --kelabu: #90A4AE;
-    --teks: #1A2332;
-  }
+/* HEADER */
+.header{background:linear-gradient(135deg,#0D1B2A 0%,#1a3a5c 60%,#1E88E5 100%);padding:14px 18px;color:white;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.header-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.header-sekolah{font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:0.65;}
+.header-title{font-family:'Poppins',sans-serif;font-size:17px;font-weight:900;}
+.header-title span{color:var(--kuning);}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+/* DATE PICKER */
+.tarikh-wrap{position:relative;}
+.tarikh-box{background:rgba(255,255,255,0.13);border:1.5px solid rgba(255,255,255,0.25);border-radius:10px;padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;}
+.tarikh-val{font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;color:var(--kuning);}
+.tarikh-edit{font-size:10px;opacity:0.7;border-left:1px solid rgba(255,255,255,0.3);padding-left:8px;}
+.date-dd{display:none;position:absolute;top:calc(100% + 8px);right:0;background:white;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.2);padding:14px;z-index:300;min-width:260px;}
+.date-dd.buka{display:block;animation:fd 0.18s ease;}
+@keyframes fd{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.date-dd-title{font-size:10px;font-weight:700;color:#607D8B;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.date-input{width:100%;padding:9px 12px;border:2px solid #E0E0E0;border-radius:9px;font-size:14px;font-family:'Inter',sans-serif;color:var(--teks);outline:none;transition:border 0.2s;}
+.date-input:focus{border-color:var(--biru);}
+.btn-grp{display:flex;gap:6px;margin-top:8px;}
+.btn-grp button{flex:1;padding:8px 4px;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;}
+.b-smlm{background:#FFF3E0;color:#E65100;}
+.b-hari{background:var(--biru);color:white;}
+.b-esok{background:#E8F5E9;color:#2E7D32;}
 
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--teks);
-    min-height: 100vh;
-  }
+/* STATS */
+.stats-bar{display:flex;background:var(--navy);border-bottom:3px solid var(--biru);}
+.stat{flex:1;padding:9px 6px;text-align:center;border-right:1px solid rgba(255,255,255,0.07);}
+.stat:last-child{border-right:none;}
+.stat-num{font-family:'Poppins',sans-serif;font-size:24px;font-weight:900;line-height:1;}
+.stat-lbl{font-size:8px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.8px;margin-top:1px;}
 
-  /* ── HEADER ── */
-  .header {
-    background: linear-gradient(135deg, #0D1B2A 0%, #1a3a5c 60%, #1E88E5 100%);
-    padding: 20px 28px 16px;
-    color: white;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  }
-  .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; }
-  .header-sekolah { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; }
-  .header-title { font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 900; line-height: 1.1; margin-top: 2px; }
-  .header-title span { color: var(--kuning); }
-  .tarikh-box {
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 10px;
-    padding: 8px 14px;
-    font-size: 12px;
-    text-align: right;
-    backdrop-filter: blur(4px);
-  }
-  .tarikh-box .hari { font-size: 16px; font-weight: 700; color: var(--kuning); }
+/* MOD BANNER */
+.mod-banner{margin:12px 16px 0;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;font-weight:700;font-size:13px;transition:all 0.4s;}
+.mod-normal{background:linear-gradient(90deg,#1b5e20,#43A047);color:white;}
+.mod-kritikal{background:linear-gradient(90deg,#b71c1c,#E53935);color:white;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.85}}
+.mod-sub{font-size:10px;font-weight:400;opacity:0.9;margin-top:1px;}
+.mod-badge{margin-left:auto;background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 10px;font-size:9px;letter-spacing:1px;text-transform:uppercase;}
 
-  /* ── STATS BAR ── */
-  .stats-bar {
-    display: flex;
-    background: var(--navy);
-    border-bottom: 3px solid var(--biru);
-  }
-  .stat {
-    flex: 1;
-    padding: 10px 8px;
-    text-align: center;
-    border-right: 1px solid rgba(255,255,255,0.08);
-    cursor: default;
-  }
-  .stat:last-child { border-right: none; }
-  .stat-num {
-    font-family: 'Poppins', sans-serif;
-    font-size: 26px;
-    font-weight: 900;
-    line-height: 1;
-  }
-  .stat-lbl { font-size: 9px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; }
+/* SLIP ALERT */
+.slip-alert{margin:8px 16px 0;background:#fff8e1;border:2px solid var(--oren);border-radius:9px;padding:8px 12px;font-size:11px;color:#e65100;font-weight:600;}
 
-  /* ── MOD BANNER ── */
-  .mod-banner {
-    margin: 16px 20px 0;
-    border-radius: 12px;
-    padding: 12px 18px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 700;
-    font-size: 14px;
-    transition: all 0.4s;
-  }
-  .mod-normal { background: linear-gradient(90deg, #1b5e20, #43A047); color: white; }
-  .mod-kritikal { background: linear-gradient(90deg, #b71c1c, #E53935); color: white; animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.85} }
-  .mod-icon { font-size: 24px; }
-  .mod-text-sub { font-size: 11px; font-weight: 400; opacity: 0.9; margin-top: 2px; }
-  .mod-badge {
-    margin-left: auto;
-    background: rgba(255,255,255,0.2);
-    border-radius: 20px;
-    padding: 3px 12px;
-    font-size: 10px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
+/* MAIN */
+.main{padding:12px 16px 90px;}
 
-  /* ── SLIP DISC ALERT ── */
-  .slip-alert {
-    margin: 10px 20px 0;
-    background: #fff8e1;
-    border: 2px solid var(--oren);
-    border-radius: 10px;
-    padding: 10px 14px;
-    font-size: 12px;
-    color: #e65100;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+/* TAB BAR */
+.tab-bar{display:flex;background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.1);margin-bottom:12px;}
+.tab{flex:1;padding:10px;text-align:center;font-size:12px;font-weight:700;color:#90A4AE;cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;}
+.tab.aktif{color:var(--biru);border-bottom-color:var(--biru);background:#F0F7FF;}
 
-  /* ── MAIN LAYOUT ── */
-  .main { padding: 16px 20px 100px; }
+/* CARIAN */
+.carian-wrap{position:relative;margin-bottom:10px;}
+.carian-input{width:100%;padding:10px 14px 10px 36px;border:2px solid #E0E0E0;border-radius:10px;font-size:13px;font-family:'Inter',sans-serif;outline:none;transition:border 0.2s;background:white;}
+.carian-input:focus{border-color:var(--biru);}
+.carian-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;opacity:0.5;}
 
-  /* ── SECTION TITLE ── */
-  .section-title {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--kelabu);
-    margin: 18px 0 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .section-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #CBD5E0;
-  }
+/* SENARAI GURU */
+.guru-list{display:flex;flex-direction:column;gap:5px;}
+.guru-row{display:flex;align-items:center;gap:12px;background:white;border-radius:10px;padding:10px 14px;cursor:pointer;border:2px solid transparent;transition:all 0.15s;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
+.guru-row:hover{box-shadow:0 3px 10px rgba(0,0,0,0.1);transform:translateX(2px);}
+.guru-row.absent{border-color:var(--merah);background:#FFEBEE;}
+.guru-row.hadir{border-color:#C8E6C9;background:#F9FBF9;}
 
-  /* ── GRID GURU ── */
-  .guru-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-    gap: 8px;
-  }
+/* TOGGLE */
+.toggle{width:42px;height:24px;border-radius:12px;position:relative;flex-shrink:0;transition:background 0.2s;border:none;cursor:pointer;}
+.toggle.on{background:var(--hijau);}
+.toggle.off{background:#FFCDD2;}
+.toggle-knob{position:absolute;top:3px;width:18px;height:18px;border-radius:9px;background:white;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.toggle.on .toggle-knob{left:21px;}
+.toggle.off .toggle-knob{left:3px;}
 
-  .guru-kad {
-    background: white;
-    border-radius: 10px;
-    padding: 10px 12px;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s;
-    position: relative;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    user-select: none;
-  }
-  .guru-kad:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-  .guru-kad:active { transform: scale(0.97); }
+.guru-info{flex:1;min-width:0;}
+.guru-nama-txt{font-size:12px;font-weight:700;color:var(--teks);line-height:1.3;}
+.guru-row.absent .guru-nama-txt{color:var(--merah);}
+.guru-meta{font-size:10px;color:var(--kelabu);margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.tag-slipdisc{background:#FFF3E0;color:#E65100;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700;}
+.tag-absent{background:#FFEBEE;color:#C62828;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700;}
+.status-txt{font-size:10px;font-weight:700;}
+.status-hadir{color:var(--hijau);}
+.status-absent{color:var(--merah);}
 
-  .guru-kad.hadir {
-    border-color: #C8E6C9;
-    background: #F1F8E9;
-  }
-  .guru-kad.absent {
-    border-color: var(--merah);
-    background: #FFEBEE;
-    animation: absentFlash 0.3s ease;
-  }
-  @keyframes absentFlash {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.04); }
-    100% { transform: scale(1); }
-  }
+/* PANEL TAMBAH GURU */
+.panel-tambah{background:white;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.panel-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.form-group{margin-bottom:10px;}
+.form-label{font-size:11px;font-weight:600;color:#607D8B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;display:block;}
+.form-input{width:100%;padding:10px 12px;border:2px solid #E0E0E0;border-radius:9px;font-size:13px;font-family:'Inter',sans-serif;color:var(--teks);outline:none;transition:border 0.2s;}
+.form-input:focus{border-color:var(--biru);}
+.form-select{width:100%;padding:10px 12px;border:2px solid #E0E0E0;border-radius:9px;font-size:13px;font-family:'Inter',sans-serif;color:var(--teks);outline:none;background:white;}
+.checkbox-row{display:flex;align-items:center;gap:8px;padding:10px 0;}
+.checkbox-row input{width:18px;height:18px;accent-color:var(--oren);cursor:pointer;}
+.checkbox-row label{font-size:13px;font-weight:600;color:#E65100;cursor:pointer;}
+.btn-tambah{width:100%;padding:12px;background:linear-gradient(135deg,var(--biru),#0D47A1);color:white;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;}
+.btn-tambah:hover{opacity:0.92;}
 
-  .guru-status-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    position: absolute;
-    top: 8px; right: 8px;
-    transition: background 0.2s;
-  }
-  .hadir .guru-status-dot { background: var(--hijau); }
-  .absent .guru-status-dot { background: var(--merah); }
+/* SENARAI UNTUK URUS */
+.guru-row-urus{display:flex;align-items:center;gap:10px;background:white;border-radius:9px;padding:9px 12px;margin-bottom:5px;border:1px solid #ECEFF1;}
+.btn-padam{background:#FFEBEE;border:none;border-radius:7px;padding:5px 10px;color:var(--merah);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;}
+.btn-padam:hover{background:#FFCDD2;}
+.divider-urus{height:1px;background:#ECEFF1;margin:14px 0;}
 
-  .guru-nama {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--teks);
-    line-height: 1.3;
-    padding-right: 14px;
-  }
-  .guru-jawatan {
-    font-size: 9px;
-    color: var(--kelabu);
-    margin-top: 3px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .guru-slipdisc {
-    font-size: 9px;
-    color: var(--oren);
-    font-weight: 700;
-    margin-top: 2px;
-  }
-  .absent .guru-nama { color: var(--merah); }
+/* FAB */
+.fab{position:fixed;bottom:20px;right:16px;left:16px;background:linear-gradient(135deg,#1E88E5,#0D47A1);color:white;border:none;border-radius:14px;padding:15px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(30,136,229,0.45);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;z-index:90;}
+.fab:hover{transform:translateY(-2px);}
+.fab:active{transform:scale(0.98);}
 
-  /* ── BUTANG JANA ── */
-  .fab {
-    position: fixed;
-    bottom: 24px;
-    right: 20px;
-    left: 20px;
-    background: linear-gradient(135deg, #1E88E5, #0D47A1);
-    color: white;
-    border: none;
-    border-radius: 16px;
-    padding: 16px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 6px 24px rgba(30,136,229,0.5);
-    transition: all 0.2s;
-    letter-spacing: 0.5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    z-index: 90;
-  }
-  .fab:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(30,136,229,0.6); }
-  .fab:active { transform: scale(0.98); }
-  .fab:disabled { background: #90A4AE; box-shadow: none; cursor: not-allowed; }
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;overflow-y:auto;padding:12px;}
+.modal-overlay.aktif{display:flex;flex-direction:column;align-items:center;}
+.modal-box{background:white;border-radius:14px;width:100%;max-width:860px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);margin:auto;}
 
-  /* ── MODAL INFOGRAFIK ── */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 200;
-    overflow-y: auto;
-    padding: 16px;
-  }
-  .modal-overlay.aktif { display: flex; flex-direction: column; align-items: center; }
+/* INFOGRAFIK */
+.info-header{background:linear-gradient(135deg,#0D1B2A,#1E88E5);padding:18px 22px;color:white;}
+.info-sekolah{font-size:9px;letter-spacing:2px;opacity:0.7;text-transform:uppercase;}
+.info-title{font-family:'Poppins',sans-serif;font-size:20px;font-weight:900;margin:3px 0;}
+.info-meta{font-size:11px;opacity:0.85;}
+.info-stats{display:flex;background:#0D1B2A;border-bottom:3px solid #1E88E5;}
+.info-stat{flex:1;padding:10px 6px;text-align:center;border-right:1px solid rgba(255,255,255,0.07);color:white;}
+.info-stat:last-child{border-right:none;}
+.info-stat-num{font-family:'Poppins',sans-serif;font-size:26px;font-weight:900;line-height:1;}
+.info-stat-lbl{font-size:8px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
+.info-mod{padding:11px 22px;font-weight:700;font-size:14px;color:white;display:flex;align-items:center;gap:10px;}
+.info-mod-n{background:linear-gradient(90deg,#1b5e20,#43A047);}
+.info-mod-k{background:linear-gradient(90deg,#b71c1c,#E53935);}
+.info-body{padding:16px 22px;}
+.info-stitle{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#607D8B;border-left:4px solid #1E88E5;padding-left:9px;margin:12px 0 9px;}
+.info-alert{background:#fff8e1;border:2px solid var(--oren);border-radius:8px;padding:9px 12px;font-size:11px;color:#e65100;font-weight:600;margin-bottom:12px;}
+.ag-tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.ag-tbl th{background:#1a237e;color:white;padding:7px 9px;text-align:left;font-size:9px;letter-spacing:0.5px;text-transform:uppercase;}
+.ag-tbl td{padding:7px 9px;border-bottom:1px solid #ECEFF1;vertical-align:top;}
+.ag-tbl tr:nth-child(even) td{background:#F8FAFC;}
+.badge{display:inline-block;border-radius:20px;padding:2px 8px;font-size:9px;font-weight:700;}
+.bd{background:#FFEBEE;color:#C62828;}
+.br{background:#E3F2FD;color:#1565C0;}
+.bs{background:#F3E5F5;color:#6A1B9A;}
+.wktu-tbl{width:100%;border-collapse:collapse;font-size:10px;}
+.wktu-tbl td{padding:4px 7px;border-bottom:1px solid #ECEFF1;}
+.wktu-rehat td{background:#FFF9C4;font-weight:700;color:#E65100;}
+.info-footer{background:#37474F;color:rgba(255,255,255,0.8);padding:9px 22px;display:flex;justify-content:space-between;font-size:10px;}
+.modal-actions{display:flex;gap:8px;padding:12px 14px;background:#F5F5F5;border-top:1px solid #E0E0E0;}
+.btn-cetak{flex:1;padding:11px;background:#1a237e;color:white;border:none;border-radius:9px;font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-tutup{padding:11px 18px;background:#ECEFF1;color:#546E7A;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;}
 
-  .modal-box {
-    background: white;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 840px;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-    margin: auto;
-  }
-
-  /* ── INFOGRAFIK DALAM MODAL ── */
-  .info-header {
-    background: linear-gradient(135deg, #0D1B2A, #1E88E5);
-    padding: 20px 24px;
-    color: white;
-  }
-  .info-sekolah { font-size: 10px; letter-spacing: 2px; opacity: 0.7; text-transform: uppercase; }
-  .info-title { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 900; margin: 4px 0; }
-  .info-meta { font-size: 12px; opacity: 0.85; }
-
-  .info-stats {
-    display: flex;
-    background: #0D1B2A;
-    border-bottom: 3px solid #1E88E5;
-  }
-  .info-stat {
-    flex: 1;
-    padding: 12px 8px;
-    text-align: center;
-    border-right: 1px solid rgba(255,255,255,0.07);
-    color: white;
-  }
-  .info-stat:last-child { border-right: none; }
-  .info-stat-num { font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 900; line-height: 1; }
-  .info-stat-lbl { font-size: 9px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
-
-  .info-mod {
-    padding: 12px 24px;
-    font-weight: 700;
-    font-size: 15px;
-    color: white;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .info-mod-normal { background: linear-gradient(90deg,#1b5e20,#43A047); }
-  .info-mod-kritikal { background: linear-gradient(90deg,#b71c1c,#E53935); }
-
-  .info-body { padding: 18px 24px; }
-
-  .info-section-title {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #607D8B;
-    border-left: 4px solid #1E88E5;
-    padding-left: 10px;
-    margin: 14px 0 10px;
-  }
-
-  .info-alert {
-    background: #fff8e1;
-    border: 2px solid var(--oren);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 12px;
-    color: #e65100;
-    font-weight: 600;
-    margin-bottom: 14px;
-  }
-
-  /* Jadual agihan */
-  .agihan-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .agihan-table th {
-    background: #1a237e;
-    color: white;
-    padding: 8px 10px;
-    text-align: left;
-    font-size: 10px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-  .agihan-table td { padding: 8px 10px; border-bottom: 1px solid #ECEFF1; vertical-align: top; }
-  .agihan-table tr:nth-child(even) td { background: #F8FAFC; }
-
-  .badge {
-    display: inline-block;
-    border-radius: 20px;
-    padding: 3px 10px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-  }
-  .badge-dewan { background: #FFEBEE; color: #C62828; }
-  .badge-relief { background: #E3F2FD; color: #1565C0; }
-  .badge-serap { background: #F3E5F5; color: #6A1B9A; }
-
-  /* Jadual waktu dalam modal */
-  .waktu-grid { display: flex; gap: 14px; }
-  .waktu-table { flex: 0 0 200px; }
-  .guru-hadir-list { flex: 1; }
-  .waktu-tbl { width: 100%; border-collapse: collapse; font-size: 11px; }
-  .waktu-tbl td { padding: 5px 8px; border-bottom: 1px solid #ECEFF1; }
-  .waktu-rehat td { background: #FFF9C4; font-weight: 700; color: #E65100; }
-
-  .info-footer {
-    background: #37474F;
-    color: rgba(255,255,255,0.8);
-    padding: 10px 24px;
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-  }
-
-  /* ── MODAL BUTANG ── */
-  .modal-actions {
-    display: flex;
-    gap: 10px;
-    padding: 14px 16px;
-    background: #F5F5F5;
-    border-top: 1px solid #E0E0E0;
-  }
-  .btn-cetak {
-    flex: 1;
-    padding: 12px;
-    background: #1a237e;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .btn-tutup {
-    padding: 12px 20px;
-    background: #ECEFF1;
-    color: #546E7A;
-    border: none;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  /* ── PRINT ── */
-  @media print {
-    body > *:not(#area-cetak) { display: none !important; }
-    #area-cetak { display: block !important; }
-    .modal-actions { display: none !important; }
-  }
+@media print{
+  body>*:not(#modal){display:none!important;}
+  #modal{display:block!important;position:static!important;background:white!important;padding:0!important;}
+  .modal-box{box-shadow:none!important;border-radius:0!important;}
+  .modal-actions{display:none!important;}
+  .modal-overlay{display:block!important;position:static!important;background:white!important;padding:0!important;}
+}
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <div class="header">
-  <div class="header-top">
+  <div class="header-row">
     <div>
-      <div class="header-sekolah">SK King Edward VII (1) · Taiping, Perak</div>
+      <div class="header-sekolah">SK King Edward VII (1) · Taiping</div>
       <div class="header-title">JADUAL <span>ANJAL</span></div>
     </div>
-    <div class="tarikh-box">
-      <div class="hari" id="hari-txt"></div>
-      <div id="tarikh-txt" style="font-size:11px;opacity:0.8"></div>
+    <div class="tarikh-wrap">
+      <div class="tarikh-box" onclick="toggleDD()">
+        <div>
+          <div style="font-size:8px;opacity:0.6;letter-spacing:1px;text-transform:uppercase">Tarikh Jadual</div>
+          <div class="tarikh-val" id="tarikh-val">—</div>
+        </div>
+        <div class="tarikh-edit">✏️ Tukar</div>
+      </div>
+      <div class="date-dd" id="date-dd">
+        <div class="date-dd-title">📅 Pilih Tarikh</div>
+        <input type="date" class="date-input" id="date-input" onchange="setTarikhInput(this.value)">
+        <div class="btn-grp">
+          <button class="b-smlm" onclick="setHari(-1)">⬅ Semalam</button>
+          <button class="b-hari" onclick="setHari(0)">Hari Ini</button>
+          <button class="b-esok" onclick="setHari(1)">Esok ➡</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- STATS BAR -->
+<!-- STATS -->
 <div class="stats-bar">
-  <div class="stat">
-    <div class="stat-num" id="stat-hadir" style="color:#43A047">–</div>
-    <div class="stat-lbl">Hadir</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num" id="stat-absent" style="color:#E53935">–</div>
-    <div class="stat-lbl">Tidak Hadir</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num" id="stat-relief" style="color:#1E88E5">–</div>
-    <div class="stat-lbl">Relief</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num" style="color:#FB8C00">18</div>
-    <div class="stat-lbl">Kelas</div>
-  </div>
+  <div class="stat"><div class="stat-num" id="s-hadir" style="color:#43A047">–</div><div class="stat-lbl">Hadir</div></div>
+  <div class="stat"><div class="stat-num" id="s-absent" style="color:#E53935">–</div><div class="stat-lbl">Tidak Hadir</div></div>
+  <div class="stat"><div class="stat-num" id="s-relief" style="color:#1E88E5">–</div><div class="stat-lbl">Relief</div></div>
+  <div class="stat"><div class="stat-num" id="s-kelas" style="color:#FB8C00">18</div><div class="stat-lbl">Kelas</div></div>
 </div>
 
-<!-- MAIN -->
 <div class="main">
-
-  <!-- MOD BANNER -->
+  <!-- MOD -->
   <div class="mod-banner mod-normal" id="mod-banner">
-    <div class="mod-icon">✅</div>
-    <div>
-      <div id="mod-title">MOD NORMAL — RELIEF BIASA</div>
-      <div class="mod-text-sub" id="mod-sub">Semua guru mencukupi untuk agihan relief</div>
-    </div>
+    <div id="mod-icon">✅</div>
+    <div><div id="mod-title">MOD NORMAL — RELIEF BIASA</div><div class="mod-sub" id="mod-sub">Semua guru mencukupi</div></div>
     <div class="mod-badge" id="mod-badge">NORMAL</div>
   </div>
 
-  <!-- SLIP DISC ALERT -->
-  <div class="slip-alert">
-    ⚠️ <strong>Cikgu Sarina & Cikgu Tan Fong Lin</strong> — Slip Disc. Tugaskan ke <strong>Aras Bawah SAHAJA</strong>.
+  <!-- SLIP ALERT -->
+  <div class="slip-alert">⚠️ <b>Cikgu Sarina & Cikgu Tan Fong Lin</b> — Slip Disc. Aras Bawah SAHAJA.</div>
+
+  <!-- TABS -->
+  <div style="margin-top:12px">
+    <div class="tab-bar">
+      <div class="tab aktif" id="tab-kehadiran" onclick="tukTab('kehadiran')">✅ Kehadiran</div>
+      <div class="tab" id="tab-urus" onclick="tukTab('urus')">⚙️ Urus Guru</div>
+    </div>
+
+    <!-- PANEL KEHADIRAN -->
+    <div id="panel-kehadiran">
+      <div class="carian-wrap">
+        <span class="carian-icon">🔍</span>
+        <input class="carian-input" id="carian" placeholder="Cari nama guru..." oninput="renderSenarai()">
+      </div>
+      <div class="guru-list" id="guru-list"></div>
+    </div>
+
+    <!-- PANEL URUS GURU -->
+    <div id="panel-urus" style="display:none">
+      <!-- FORM TAMBAH -->
+      <div class="panel-tambah">
+        <div class="panel-title">➕ Tambah Guru Baru</div>
+        <div class="form-group">
+          <label class="form-label">Nama Penuh</label>
+          <input class="form-input" id="inp-nama" placeholder="Contoh: AHMAD BIN ALI" oninput="this.value=this.value.toUpperCase()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Jawatan</label>
+          <select class="form-select" id="inp-jawatan">
+            <option value="Guru">Guru</option>
+            <option value="Guru Besar">Guru Besar</option>
+            <option value="PK Pentadbiran">PK Pentadbiran</option>
+            <option value="PK HEM">PK HEM</option>
+            <option value="PK Kokurikulum">PK Kokurikulum</option>
+            <option value="Guru Data/Bestari">Guru Data/Bestari</option>
+            <option value="Guru Perpustakaan">Guru Perpustakaan</option>
+            <option value="Guru Kaunseling">Guru Kaunseling</option>
+            <option value="Guru Bahasa Cina">Guru Bahasa Cina</option>
+          </select>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="inp-slip" value="1">
+          <label for="inp-slip">⚠️ Ada masalah Slip Disc (hanya Aras Bawah)</label>
+        </div>
+        <button class="btn-tambah" onclick="tambahGuru()">➕ Tambah Ke Senarai</button>
+      </div>
+
+      <div class="divider-urus"></div>
+
+      <!-- SENARAI URUS -->
+      <div class="panel-title" style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px">📋 Senarai Guru (Klik 🗑 untuk padam)</div>
+      <div id="list-urus"></div>
+    </div>
   </div>
-
-  <!-- GRID GURU -->
-  <div class="section-title">👆 Klik nama guru yang TIDAK HADIR hari ini</div>
-  <div class="guru-grid" id="guru-grid"></div>
-
-  <!-- RESET -->
-  <div style="text-align:center;margin-top:14px">
-    <button onclick="resetSemua()" style="background:none;border:1px solid #CBD5E0;border-radius:8px;padding:8px 18px;color:#607D8B;font-size:12px;cursor:pointer">🔄 Reset Semua</button>
-  </div>
-
 </div>
 
-<!-- FAB JANA -->
-<button class="fab" onclick="janaInfografik()" id="fab-btn">
-  <span>📋</span> Jana Jadual Anjal
-</button>
+<!-- FAB -->
+<button class="fab" onclick="janaInfografik()">📋 Jana Jadual Anjal</button>
 
-<!-- MODAL INFOGRAFIK -->
+<!-- MODAL -->
 <div class="modal-overlay" id="modal" onclick="tutupModal(event)">
-  <div class="modal-box" id="modal-box">
+  <div class="modal-box">
     <div id="area-cetak"></div>
     <div class="modal-actions">
-      <button class="btn-cetak" onclick="cetakInfografik()">🖨️ CETAK INFOGRAFIK</button>
+      <button class="btn-cetak" onclick="window.print()">🖨️ CETAK INFOGRAFIK</button>
       <button class="btn-tutup" onclick="document.getElementById('modal').classList.remove('aktif')">✕ Tutup</button>
     </div>
   </div>
 </div>
 
 <script>
-// ── DATA GURU ──
-const GURU = [
-  { nama:'EN. MALIM PERMAN BIN RAMLI', jawatan:'Guru Besar', slipDisc:false },
-  { nama:'PN. RAMLAH BINTI OSMAN', jawatan:'PK Pentadbiran', slipDisc:false },
-  { nama:'EN. AZIZAN BIN MAT JUSOH', jawatan:'PK HEM', slipDisc:false },
-  { nama:'EN. MUHAMMAD NORHISYAM BIN SHAMSUDIN', jawatan:'PK Kokurikulum', slipDisc:false },
-  { nama:'AHMAD TARMIZI BIN MD HIJAZI', jawatan:'Guru', slipDisc:false },
-  { nama:'AKMATUL IRA BINTI MOHD NOOR', jawatan:'Guru', slipDisc:false },
-  { nama:'ARIES DEEN LIM BIN JEFRI LIM', jawatan:'Guru', slipDisc:false },
-  { nama:'AZLINA BINTI MD YUSOFF', jawatan:'Guru', slipDisc:false },
-  { nama:'FAIZAYUSNI BIN AHMAD', jawatan:'Guru', slipDisc:false },
-  { nama:'HAZYZYIZUAN BIN ABU HASSAN', jawatan:'Guru', slipDisc:false },
-  { nama:'IMRAN BIN SUPIN', jawatan:'Guru', slipDisc:false },
-  { nama:'JASRIZAL BIN SAAD', jawatan:'Guru', slipDisc:false },
-  { nama:'JUNAIDAH BINTI BUDIN', jawatan:'Guru', slipDisc:false },
-  { nama:'KALA DEVI A/P ROGORNARTHUM', jawatan:'Guru', slipDisc:false },
-  { nama:'KALAIVANI A/P MURUGIAH', jawatan:'Guru', slipDisc:false },
-  { nama:'MAT NAZRI BIN MAT KHALIL', jawatan:'Guru', slipDisc:false },
-  { nama:'MOHD NAZAR BIN HAMID', jawatan:'Guru', slipDisc:false },
-  { nama:'MOHD YAZID NAJMI BIN MUHAMAD ALI', jawatan:'Guru', slipDisc:false },
-  { nama:'MUHAMMAD FATTAH BIN OTHMAN', jawatan:'Guru', slipDisc:false },
-  { nama:'MUHAMMAD RAZID BIN RAZALI', jawatan:'Guru', slipDisc:false },
-  { nama:'MUHAMMAD ALI FIKRI BIN MOHD JUAINI', jawatan:'Guru', slipDisc:false },
-  { nama:'MUHAMMAD HAYAZI BIN AYOB', jawatan:'Guru', slipDisc:false },
-  { nama:'NIK AINA NAJIHAH BINTI NIK MOHD NASIR', jawatan:'Guru', slipDisc:false },
-  { nama:'NOR AISYAH BINTI MOHD NOOR', jawatan:'Guru', slipDisc:false },
-  { nama:'NORMALA BINTI SALLEH', jawatan:'Guru', slipDisc:false },
-  { nama:'NORHAYATI BINTI MAT ISA', jawatan:'Guru', slipDisc:false },
-  { nama:'NUR AKMAR BINTI MD ARSHAD', jawatan:'Guru', slipDisc:false },
-  { nama:'NUR AIN NAJIHAH BINTI ZAINAL', jawatan:'Guru', slipDisc:false },
-  { nama:'NUR AQILAH SYAMIMI BINTI MOHAMMAD ROZALI', jawatan:'Guru', slipDisc:false },
-  { nama:'NURUL HUSNA BINTI ABDUL MANAF', jawatan:'Guru', slipDisc:false },
-  { nama:'SANGEETA A/P CHINATAMBI', jawatan:'Guru', slipDisc:false },
-  { nama:'SARINA BINTI HASHIM', jawatan:'Guru', slipDisc:true },
-  { nama:'SITI AISYAH BINTI MOHD YUSOFF', jawatan:'Guru', slipDisc:false },
-  { nama:'SUGANTHI A/P LETCHAMANAN', jawatan:'Guru', slipDisc:false },
-  { nama:'WAZNAH BINTI MAMAT', jawatan:'Guru', slipDisc:false },
-  { nama:'YAZHINI A/P GUNASAIGARAN', jawatan:'Guru', slipDisc:false },
-  { nama:'ZULFAA WAHIIDA BINTI MOHD FADZIL', jawatan:'Guru', slipDisc:false },
-  { nama:'ABDUL MUTTAQIN BIN SAHAROM', jawatan:'Guru Data/Bestari', slipDisc:false },
-  { nama:'NORIZAN BINTI AWANG', jawatan:'Guru Perpustakaan', slipDisc:false },
-  { nama:'ALMASIAH BINTI ABDUL KHANIP', jawatan:'Guru Kaunseling', slipDisc:false },
-  { nama:'TAN FONG LIN', jawatan:'Guru Bahasa Cina', slipDisc:true },
+// ── DATA GURU (simpan dalam localStorage) ──
+const GURU_ASAL = [
+  {nama:'EN. MALIM PERMAN BIN RAMLI',jawatan:'Guru Besar',slipDisc:false},
+  {nama:'PN. RAMLAH BINTI OSMAN',jawatan:'PK Pentadbiran',slipDisc:false},
+  {nama:'EN. AZIZAN BIN MAT JUSOH',jawatan:'PK HEM',slipDisc:false},
+  {nama:'EN. MUHAMMAD NORHISYAM BIN SHAMSUDIN',jawatan:'PK Kokurikulum',slipDisc:false},
+  {nama:'AHMAD TARMIZI BIN MD HIJAZI',jawatan:'Guru',slipDisc:false},
+  {nama:'AKMATUL IRA BINTI MOHD NOOR',jawatan:'Guru',slipDisc:false},
+  {nama:'ARIES DEEN LIM BIN JEFRI LIM',jawatan:'Guru',slipDisc:false},
+  {nama:'AZLINA BINTI MD YUSOFF',jawatan:'Guru',slipDisc:false},
+  {nama:'FAIZAYUSNI BIN AHMAD',jawatan:'Guru',slipDisc:false},
+  {nama:'HAZYZYIZUAN BIN ABU HASSAN',jawatan:'Guru',slipDisc:false},
+  {nama:'IMRAN BIN SUPIN',jawatan:'Guru',slipDisc:false},
+  {nama:'JASRIZAL BIN SAAD',jawatan:'Guru',slipDisc:false},
+  {nama:'JUNAIDAH BINTI BUDIN',jawatan:'Guru',slipDisc:false},
+  {nama:'KALA DEVI A/P ROGORNARTHUM',jawatan:'Guru',slipDisc:false},
+  {nama:'KALAIVANI A/P MURUGIAH',jawatan:'Guru',slipDisc:false},
+  {nama:'MAT NAZRI BIN MAT KHALIL',jawatan:'Guru',slipDisc:false},
+  {nama:'MOHD NAZAR BIN HAMID',jawatan:'Guru',slipDisc:false},
+  {nama:'MOHD YAZID NAJMI BIN MUHAMAD ALI',jawatan:'Guru',slipDisc:false},
+  {nama:'MUHAMMAD FATTAH BIN OTHMAN',jawatan:'Guru',slipDisc:false},
+  {nama:'MUHAMMAD RAZID BIN RAZALI',jawatan:'Guru',slipDisc:false},
+  {nama:'MUHAMMAD ALI FIKRI BIN MOHD JUAINI',jawatan:'Guru',slipDisc:false},
+  {nama:'MUHAMMAD HAYAZI BIN AYOB',jawatan:'Guru',slipDisc:false},
+  {nama:'NIK AINA NAJIHAH BINTI NIK MOHD NASIR',jawatan:'Guru',slipDisc:false},
+  {nama:'NOR AISYAH BINTI MOHD NOOR',jawatan:'Guru',slipDisc:false},
+  {nama:'NORMALA BINTI SALLEH',jawatan:'Guru',slipDisc:false},
+  {nama:'NORHAYATI BINTI MAT ISA',jawatan:'Guru',slipDisc:false},
+  {nama:'NUR AKMAR BINTI MD ARSHAD',jawatan:'Guru',slipDisc:false},
+  {nama:'NUR AIN NAJIHAH BINTI ZAINAL',jawatan:'Guru',slipDisc:false},
+  {nama:'NUR AQILAH SYAMIMI BINTI MOHAMMAD ROZALI',jawatan:'Guru',slipDisc:false},
+  {nama:'NURUL HUSNA BINTI ABDUL MANAF',jawatan:'Guru',slipDisc:false},
+  {nama:'SANGEETA A/P CHINATAMBI',jawatan:'Guru',slipDisc:false},
+  {nama:'SARINA BINTI HASHIM',jawatan:'Guru',slipDisc:true},
+  {nama:'SITI AISYAH BINTI MOHD YUSOFF',jawatan:'Guru',slipDisc:false},
+  {nama:'SUGANTHI A/P LETCHAMANAN',jawatan:'Guru',slipDisc:false},
+  {nama:'WAZNAH BINTI MAMAT',jawatan:'Guru',slipDisc:false},
+  {nama:'YAZHINI A/P GUNASAIGARAN',jawatan:'Guru',slipDisc:false},
+  {nama:'ZULFAA WAHIIDA BINTI MOHD FADZIL',jawatan:'Guru',slipDisc:false},
+  {nama:'ABDUL MUTTAQIN BIN SAHAROM',jawatan:'Guru Data/Bestari',slipDisc:false},
+  {nama:'NORIZAN BINTI AWANG',jawatan:'Guru Perpustakaan',slipDisc:false},
+  {nama:'ALMASIAH BINTI ABDUL KHANIP',jawatan:'Guru Kaunseling',slipDisc:false},
+  {nama:'TAN FONG LIN',jawatan:'Guru Bahasa Cina',slipDisc:true},
 ];
 
-const WAKTU = [
-  {bil:1, mula:'7:40', tamat:'8:10'},
-  {bil:2, mula:'8:10', tamat:'8:40'},
-  {bil:3, mula:'8:40', tamat:'9:10'},
-  {bil:4, mula:'9:10', tamat:'9:40'},
-  {bil:5, mula:'9:40', tamat:'10:10'},
-  {bil:6, mula:'10:10', tamat:'10:30', rehat:true},
-  {bil:7, mula:'10:30', tamat:'11:00'},
-  {bil:8, mula:'11:00', tamat:'11:30'},
-  {bil:9, mula:'11:30', tamat:'12:00'},
-  {bil:10, mula:'12:00', tamat:'12:30'},
-  {bil:11, mula:'12:30', tamat:'1:00'},
+const WAKTU=[
+  {bil:1,mula:'7:40',tamat:'8:10'},{bil:2,mula:'8:10',tamat:'8:40'},
+  {bil:3,mula:'8:40',tamat:'9:10'},{bil:4,mula:'9:10',tamat:'9:40'},
+  {bil:5,mula:'9:40',tamat:'10:10'},{bil:6,mula:'10:10',tamat:'10:30',rehat:true},
+  {bil:7,mula:'10:30',tamat:'11:00'},{bil:8,mula:'11:00',tamat:'11:30'},
+  {bil:9,mula:'11:30',tamat:'12:00'},{bil:10,mula:'12:00',tamat:'12:30'},
+  {bil:11,mula:'12:30',tamat:'1:00'},
 ];
 
-const KELAS = [
-  {nama:'1 Brilliant',aras:'Bawah',tahap:1},{nama:'1 Diligent',aras:'Bawah',tahap:1},{nama:'1 Excellent',aras:'Bawah',tahap:1},
-  {nama:'2 Brilliant',aras:'Bawah',tahap:1},{nama:'2 Diligent',aras:'Bawah',tahap:1},{nama:'2 Excellent',aras:'Tingkat 2',tahap:1},
-  {nama:'3 Brilliant',aras:'Bawah',tahap:1},{nama:'3 Diligent',aras:'Bawah',tahap:1},{nama:'3 Excellent',aras:'Tingkat 3',tahap:1},
-  {nama:'4 Brilliant',aras:'Tingkat 1',tahap:2},{nama:'4 Diligent',aras:'Tingkat 1',tahap:2},{nama:'4 Excellent',aras:'Tingkat 2',tahap:2},
-  {nama:'5 Brilliant',aras:'Tingkat 1',tahap:2},{nama:'5 Diligent',aras:'Tingkat 2',tahap:2},{nama:'5 Excellent',aras:'Tingkat 2',tahap:2},
-  {nama:'6 Brilliant',aras:'Tingkat 1',tahap:2},{nama:'6 Diligent',aras:'Tingkat 1',tahap:2},{nama:'6 Excellent',aras:'Tingkat 1',tahap:2},
-];
-
-// ── STATE ──
+// STATE — simpan dalam memori sahaja (tab/sesi)
+let GURU = JSON.parse(localStorage.getItem('ja_guru') || 'null') || JSON.parse(JSON.stringify(GURU_ASAL));
 const absentSet = new Set();
+let tarikhTerpilih = new Date();
+
+function simpanGuru(){ localStorage.setItem('ja_guru', JSON.stringify(GURU)); }
 
 // ── TARIKH ──
-function setTarikh() {
-  const now = new Date();
-  const hari = ['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'][now.getDay()];
-  const bulan = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogs','Sep','Okt','Nov','Dis'][now.getMonth()];
-  document.getElementById('hari-txt').textContent = hari;
-  document.getElementById('tarikh-txt').textContent = `${now.getDate()} ${bulan} ${now.getFullYear()}`;
+const HARI=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
+const BULAN=['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+const BULAN_PENDEK=['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogs','Sep','Okt','Nov','Dis'];
+
+function fmtDisplay(d){ return `${HARI[d.getDay()]}, ${d.getDate()} ${BULAN_PENDEK[d.getMonth()]} ${d.getFullYear()}`; }
+function fmtCetak(d){ return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
+function fmtPanjang(d){ return `${HARI[d.getDay()]}, ${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`; }
+function fmtInput(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+function updateTarikh(){
+  document.getElementById('tarikh-val').textContent = fmtDisplay(tarikhTerpilih);
+  document.getElementById('date-input').value = fmtInput(tarikhTerpilih);
+}
+function setHari(offset){
+  const d=new Date(); d.setDate(d.getDate()+offset);
+  tarikhTerpilih=d; updateTarikh(); tutupDD();
+}
+function setTarikhInput(val){
+  if(!val)return;
+  const p=val.split('-');
+  tarikhTerpilih=new Date(+p[0],+p[1]-1,+p[2]);
+  updateTarikh(); tutupDD();
+}
+function toggleDD(){ document.getElementById('date-dd').classList.toggle('buka'); }
+function tutupDD(){ document.getElementById('date-dd').classList.remove('buka'); }
+document.addEventListener('click',e=>{ if(!document.querySelector('.tarikh-wrap').contains(e.target)) tutupDD(); });
+
+// ── TAB ──
+function tukTab(t){
+  document.getElementById('panel-kehadiran').style.display = t==='kehadiran'?'block':'none';
+  document.getElementById('panel-urus').style.display = t==='urus'?'block':'none';
+  document.getElementById('tab-kehadiran').className='tab'+(t==='kehadiran'?' aktif':'');
+  document.getElementById('tab-urus').className='tab'+(t==='urus'?' aktif':'');
+  if(t==='urus') renderUrus();
 }
 
-function getTarikhFormatted() {
-  const now = new Date();
-  const d = String(now.getDate()).padStart(2,'0');
-  const m = String(now.getMonth()+1).padStart(2,'0');
-  return `${d}/${m}/${now.getFullYear()}`;
-}
-
-function getMasaJana() {
-  const now = new Date();
-  return `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-}
-
-// ── BINA GRID GURU ──
-function binaGrid() {
-  const grid = document.getElementById('guru-grid');
-  grid.innerHTML = '';
-  GURU.forEach((g, i) => {
+// ── RENDER SENARAI KEHADIRAN ──
+function renderSenarai(){
+  const cari = (document.getElementById('carian').value||'').toLowerCase();
+  const list = document.getElementById('guru-list');
+  list.innerHTML='';
+  GURU.forEach((g,i)=>{
+    if(cari && !g.nama.toLowerCase().includes(cari)) return;
     const isAbsent = absentSet.has(i);
-    const kad = document.createElement('div');
-    kad.className = 'guru-kad ' + (isAbsent ? 'absent' : 'hadir');
-    kad.onclick = () => toggleGuru(i);
-    kad.innerHTML = `
-      <div class="guru-status-dot"></div>
-      <div class="guru-nama">${g.nama}</div>
-      <div class="guru-jawatan">${g.jawatan}</div>
-      ${g.slipDisc ? '<div class="guru-slipdisc">⚠️ Slip Disc</div>' : ''}
+    const row = document.createElement('div');
+    row.className = 'guru-row '+(isAbsent?'absent':'hadir');
+    row.innerHTML=`
+      <button class="toggle ${isAbsent?'off':'on'}" onclick="toggleGuru(${i})">
+        <div class="toggle-knob"></div>
+      </button>
+      <div class="guru-info">
+        <div class="guru-nama-txt">${g.nama}</div>
+        <div class="guru-meta">
+          <span>${g.jawatan}</span>
+          ${g.slipDisc?'<span class="tag-slipdisc">⚠️ Slip Disc</span>':''}
+          ${isAbsent?'<span class="tag-absent">TIDAK HADIR</span>':''}
+        </div>
+      </div>
+      <div class="${isAbsent?'status-absent':'status-hadir'} status-txt">${isAbsent?'✗':'✓'}</div>
     `;
-    grid.appendChild(kad);
+    list.appendChild(row);
   });
   kemaskiniStats();
 }
 
-// ── TOGGLE GURU ──
-function toggleGuru(i) {
-  if (absentSet.has(i)) absentSet.delete(i);
+function toggleGuru(i){
+  if(absentSet.has(i)) absentSet.delete(i);
   else absentSet.add(i);
-  binaGrid();
+  renderSenarai();
 }
 
-// ── RESET ──
-function resetSemua() {
-  if (absentSet.size === 0) return;
-  if (confirm('Reset semua pilihan?')) {
-    absentSet.clear();
-    binaGrid();
-  }
+// ── STATS ──
+function kemaskiniStats(){
+  const nAbsent=absentSet.size, nHadir=GURU.length-nAbsent;
+  const nRelief=GURU.filter((_,i)=>!absentSet.has(i)&&_.jawatan==='Guru').length;
+  const kritikal=nAbsent>10;
+  document.getElementById('s-hadir').textContent=nHadir;
+  document.getElementById('s-absent').textContent=nAbsent;
+  document.getElementById('s-relief').textContent=nRelief;
+  const b=document.getElementById('mod-banner');
+  b.className='mod-banner '+(kritikal?'mod-kritikal':'mod-normal');
+  document.getElementById('mod-icon').textContent=kritikal?'🚨':'✅';
+  document.getElementById('mod-title').textContent=kritikal?'MOD KRITIKAL — GABUNG DEWAN':'MOD NORMAL — RELIEF BIASA';
+  document.getElementById('mod-sub').textContent=kritikal?'Lebih 10 guru tiada — Tahap 2 ke Dewan':'Guru mencukupi untuk agihan relief';
+  document.getElementById('mod-badge').textContent=kritikal?'KRITIKAL':'NORMAL';
 }
 
-// ── KEMASKINI STATS ──
-function kemaskiniStats() {
-  const jumlahAbsent = absentSet.size;
-  const jumlahHadir = GURU.length - jumlahAbsent;
-  const jumlahRelief = GURU.filter((g,i) => !absentSet.has(i) && g.jawatan === 'Guru').length;
-  const modKritikal = jumlahAbsent > 10;
+// ── URUS GURU ──
+function tambahGuru(){
+  const nama=document.getElementById('inp-nama').value.trim();
+  const jawatan=document.getElementById('inp-jawatan').value;
+  const slip=document.getElementById('inp-slip').checked;
+  if(!nama){ alert('Sila masukkan nama guru!'); return; }
+  if(GURU.find(g=>g.nama===nama)){ alert('Nama guru ini dah ada dalam senarai!'); return; }
+  GURU.push({nama,jawatan,slipDisc:slip});
+  simpanGuru();
+  document.getElementById('inp-nama').value='';
+  document.getElementById('inp-slip').checked=false;
+  alert('✅ '+nama+' berjaya ditambah!');
+  renderUrus();
+  renderSenarai();
+}
 
-  document.getElementById('stat-hadir').textContent = jumlahHadir;
-  document.getElementById('stat-absent').textContent = jumlahAbsent;
-  document.getElementById('stat-relief').textContent = jumlahRelief;
+function padamGuru(i){
+  if(!confirm('Padam '+GURU[i].nama+'?')) return;
+  absentSet.delete(i);
+  // Adjust absent set indices
+  const newAbsent=new Set();
+  absentSet.forEach(idx=>{ if(idx<i) newAbsent.add(idx); else if(idx>i) newAbsent.add(idx-1); });
+  absentSet.clear(); newAbsent.forEach(x=>absentSet.add(x));
+  GURU.splice(i,1);
+  simpanGuru();
+  renderUrus();
+  renderSenarai();
+}
 
-  const banner = document.getElementById('mod-banner');
-  banner.className = 'mod-banner ' + (modKritikal ? 'mod-kritikal' : 'mod-normal');
-  document.getElementById('mod-banner').querySelector('.mod-icon').textContent = modKritikal ? '🚨' : '✅';
-  document.getElementById('mod-title').textContent = modKritikal ? 'MOD KRITIKAL — GABUNG DEWAN DIAKTIFKAN' : 'MOD NORMAL — RELIEF BIASA';
-  document.getElementById('mod-sub').textContent = modKritikal ? 'Lebih 10 guru tiada — Tahap 2 berkumpul di Dewan' : 'Semua guru mencukupi untuk agihan relief';
-  document.getElementById('mod-badge').textContent = modKritikal ? 'KRITIKAL' : 'NORMAL';
+function renderUrus(){
+  const div=document.getElementById('list-urus');
+  div.innerHTML='';
+  GURU.forEach((g,i)=>{
+    const row=document.createElement('div');
+    row.className='guru-row-urus';
+    row.innerHTML=`
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:var(--teks)">${g.nama}</div>
+        <div style="font-size:10px;color:var(--kelabu);margin-top:2px">${g.jawatan}${g.slipDisc?' · ⚠️ Slip Disc':''}</div>
+      </div>
+      <button class="btn-padam" onclick="padamGuru(${i})">🗑 Padam</button>
+    `;
+    div.appendChild(row);
+  });
 }
 
 // ── JANA INFOGRAFIK ──
-function janaInfografik() {
-  const guruAbsent = Array.from(absentSet).map(i => GURU[i]);
-  const guruHadir = GURU.filter((_,i) => !absentSet.has(i));
-  const reliefPool = guruHadir.filter(g => g.jawatan === 'Guru');
-  const modKritikal = absentSet.size > 10;
-  const tarikh = getTarikhFormatted();
-  const masa = getMasaJana();
+function janaInfografik(){
+  const guruAbsent=Array.from(absentSet).map(i=>GURU[i]);
+  const guruHadir=GURU.filter((_,i)=>!absentSet.has(i));
+  const reliefPool=guruHadir.filter(g=>g.jawatan==='Guru');
+  const kritikal=absentSet.size>10;
+  const tCetak=fmtCetak(tarikhTerpilih);
+  const tPanjang=fmtPanjang(tarikhTerpilih);
+  const now=new Date();
+  const masa=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
-  // Agihan
-  const agihan = [];
-  let reliefIdx = 0;
-  guruAbsent.forEach(g => {
-    if (modKritikal) {
-      agihan.push({ absent: g.nama, tindakan: 'DEWAN', relief: '—', nota: 'Tahap 2 → Dewan. Tahap 1 → Arahan GPK.' });
+  const agihan=[]; let rIdx=0;
+  guruAbsent.forEach(g=>{
+    if(kritikal){
+      agihan.push({absent:g.nama,tindakan:'DEWAN',relief:'—',nota:'Tahap 2→Dewan. Tahap 1→Arahan GPK.'});
+    } else if(rIdx<reliefPool.length){
+      const r=reliefPool[rIdx++];
+      agihan.push({absent:g.nama,tindakan:'RELIEF',relief:r.nama+(r.slipDisc?' ⚠️':''),nota:r.slipDisc?'Aras Bawah sahaja':'Boleh ke mana-mana kelas'});
     } else {
-      if (reliefIdx < reliefPool.length) {
-        const r = reliefPool[reliefIdx++];
-        agihan.push({
-          absent: g.nama,
-          tindakan: 'RELIEF',
-          relief: r.nama + (r.slipDisc ? ' ⚠️' : ''),
-          nota: r.slipDisc ? 'Aras Bawah sahaja (Slip Disc)' : 'Boleh ke mana-mana kelas'
-        });
-      } else {
-        agihan.push({ absent: g.nama, tindakan: 'SERAP', relief: '—', nota: 'Murid serap ke kelas jiran' });
-      }
+      agihan.push({absent:g.nama,tindakan:'SERAP',relief:'—',nota:'Murid serap ke kelas jiran'});
     }
   });
 
-  // Bina HTML infografik
-  const barisDewan = agihan.filter(a=>a.tindakan==='DEWAN').length;
-  const barisRelief = agihan.filter(a=>a.tindakan==='RELIEF').length;
-  const barisSerap = agihan.filter(a=>a.tindakan==='SERAP').length;
+  const nDewan=agihan.filter(a=>a.tindakan==='DEWAN').length;
+  const nRelief=agihan.filter(a=>a.tindakan==='RELIEF').length;
+  const nSerap=agihan.filter(a=>a.tindakan==='SERAP').length;
 
-  let rowsAgihan = agihan.length === 0
-    ? `<tr><td colspan="4" style="text-align:center;padding:16px;color:#9E9E9E;font-style:italic">✅ Tiada guru tidak hadir hari ini</td></tr>`
-    : agihan.map((a,i) => {
-        const bg = i%2===0?'#F8FAFC':'#fff';
-        const badgeClass = a.tindakan==='DEWAN'?'badge-dewan':a.tindakan==='RELIEF'?'badge-relief':'badge-serap';
-        const badgeLabel = a.tindakan==='DEWAN'?'🏛️ GABUNG DEWAN':a.tindakan==='RELIEF'?'📚 RELIEF':'🔄 SERAP';
-        return `<tr style="background:${bg}">
-          <td style="padding:7px 10px;border-bottom:1px solid #ECEFF1;font-size:11px;font-weight:700;color:#E53935">${a.absent}</td>
-          <td style="padding:7px 10px;border-bottom:1px solid #ECEFF1"><span class="badge ${badgeClass}">${badgeLabel}</span></td>
-          <td style="padding:7px 10px;border-bottom:1px solid #ECEFF1;font-size:11px;font-weight:600;color:#1565C0">${a.relief}</td>
-          <td style="padding:7px 10px;border-bottom:1px solid #ECEFF1;font-size:10px;color:#607D8B">${a.nota}</td>
-        </tr>`;
+  const rowsAg = agihan.length===0
+    ? `<tr><td colspan="4" style="text-align:center;padding:14px;color:#9E9E9E;font-style:italic">✅ Tiada guru tidak hadir pada tarikh ini</td></tr>`
+    : agihan.map((a,i)=>{
+        const bg=i%2===0?'#F8FAFC':'#fff';
+        const bc=a.tindakan==='DEWAN'?'bd':a.tindakan==='RELIEF'?'br':'bs';
+        const bl=a.tindakan==='DEWAN'?'🏛️ DEWAN':a.tindakan==='RELIEF'?'📚 RELIEF':'🔄 SERAP';
+        return `<tr style="background:${bg}"><td style="padding:6px 9px;border-bottom:1px solid #ECEFF1;font-size:10px;font-weight:700;color:#E53935">${a.absent}</td><td style="padding:6px 9px;border-bottom:1px solid #ECEFF1"><span class="badge ${bc}">${bl}</span></td><td style="padding:6px 9px;border-bottom:1px solid #ECEFF1;font-size:10px;font-weight:600;color:#1565C0">${a.relief}</td><td style="padding:6px 9px;border-bottom:1px solid #ECEFF1;font-size:9px;color:#607D8B">${a.nota}</td></tr>`;
       }).join('');
 
-  let rowsWaktu = WAKTU.map(w => {
-    const isRehat = w.rehat;
-    return `<tr class="${isRehat?'waktu-rehat':''}">
-      <td style="font-weight:${isRehat?'700':'500'};color:${isRehat?'#E65100':'#37474F'}">${isRehat?'☕ REHAT':'Waktu '+w.bil}</td>
-      <td style="color:#607D8B">${w.mula}–${w.tamat}</td>
-    </tr>`;
-  }).join('');
+  const rowsW=WAKTU.map(w=>`<tr class="${w.rehat?'wktu-rehat':''}"><td style="font-weight:${w.rehat?700:500};color:${w.rehat?'#E65100':'#37474F'}">${w.rehat?'☕ REHAT':'Waktu '+w.bil}</td><td style="color:#607D8B">${w.mula}–${w.tamat}</td></tr>`).join('');
+  const rowsH=guruHadir.map((g,i)=>`<tr style="background:${i%2===0?'#F8FAFC':'#fff'}"><td style="padding:4px 7px;font-size:10px;font-weight:600;color:#212121;border-bottom:1px solid #ECEFF1">${g.nama}</td><td style="padding:4px 7px;font-size:9px;border-bottom:1px solid #ECEFF1;color:${g.slipDisc?'#E65100':'#43A047'}">${g.slipDisc?'⚠️ Slip Disc':'✅'}</td></tr>`).join('');
 
-  let rowsHadir = guruHadir.map((g,i) =>
-    `<tr style="background:${i%2===0?'#F8FAFC':'#fff'}">
-      <td style="padding:4px 8px;font-size:11px;font-weight:600;color:#212121;border-bottom:1px solid #ECEFF1">${g.nama}</td>
-      <td style="padding:4px 8px;font-size:10px;border-bottom:1px solid #ECEFF1;color:${g.slipDisc?'#E65100':'#43A047'}">${g.slipDisc?'⚠️ Slip Disc':'✅'}</td>
-    </tr>`
-  ).join('');
-
-  const html = `
+  document.getElementById('area-cetak').innerHTML=`
     <div class="info-header">
       <div class="info-sekolah">SK KING EDWARD VII (1) · TAIPING, PERAK</div>
       <div class="info-title">📋 JADUAL ANJAL HARIAN</div>
-      <div class="info-meta">Tarikh: ${tarikh} &nbsp;|&nbsp; Jana pada: ${masa} &nbsp;|&nbsp; Guru tidak hadir: ${absentSet.size} orang</div>
+      <div class="info-meta">${tPanjang} &nbsp;|&nbsp; Jana: ${masa} &nbsp;|&nbsp; Tidak hadir: ${absentSet.size} orang</div>
     </div>
     <div class="info-stats">
       <div class="info-stat"><div class="info-stat-num" style="color:#43A047">${guruHadir.length}</div><div class="info-stat-lbl">Hadir</div></div>
       <div class="info-stat"><div class="info-stat-num" style="color:#E53935">${absentSet.size}</div><div class="info-stat-lbl">Tidak Hadir</div></div>
-      <div class="info-stat"><div class="info-stat-num" style="color:#1E88E5">${reliefPool.length}</div><div class="info-stat-lbl">Relief Tersedia</div></div>
-      <div class="info-stat"><div class="info-stat-num" style="color:#FDD835">${barisDewan}</div><div class="info-stat-lbl">Kelas Dewan</div></div>
-      <div class="info-stat"><div class="info-stat-num" style="color:#43A047">${barisRelief}</div><div class="info-stat-lbl">Relief</div></div>
-      <div class="info-stat"><div class="info-stat-num" style="color:#FB8C00">${barisSerap}</div><div class="info-stat-lbl">Serap</div></div>
+      <div class="info-stat"><div class="info-stat-num" style="color:#1E88E5">${reliefPool.length}</div><div class="info-stat-lbl">Relief</div></div>
+      <div class="info-stat"><div class="info-stat-num" style="color:#FDD835">${nDewan}</div><div class="info-stat-lbl">Dewan</div></div>
+      <div class="info-stat"><div class="info-stat-num" style="color:#43A047">${nRelief}</div><div class="info-stat-lbl">Relief</div></div>
+      <div class="info-stat"><div class="info-stat-num" style="color:#FB8C00">${nSerap}</div><div class="info-stat-lbl">Serap</div></div>
     </div>
-    <div class="info-mod ${modKritikal?'info-mod-kritikal':'info-mod-normal'}">
-      <span style="font-size:20px">${modKritikal?'🚨':'✅'}</span>
-      <div>
-        <div>${modKritikal?'MOD KRITIKAL — GABUNG DEWAN DIAKTIFKAN':'MOD NORMAL — AGIHAN RELIEF BIASA'}</div>
-        <div style="font-size:11px;font-weight:400;opacity:0.9;margin-top:2px">${modKritikal?'Lebih 10 guru tiada · Tahap 2 berkumpul di Dewan Sekolah':'Agihan guru relief ke kelas yang tiada guru'}</div>
-      </div>
+    <div class="info-mod ${kritikal?'info-mod-k':'info-mod-n'}">
+      <span style="font-size:18px">${kritikal?'🚨':'✅'}</span>
+      <div><div>${kritikal?'MOD KRITIKAL — GABUNG DEWAN DIAKTIFKAN':'MOD NORMAL — AGIHAN RELIEF BIASA'}</div>
+      <div style="font-size:10px;font-weight:400;opacity:0.9;margin-top:1px">${kritikal?'Lebih 10 guru tiada · Tahap 2 berkumpul di Dewan Sekolah':'Agihan guru relief ke kelas yang tiada guru'}</div></div>
     </div>
     <div class="info-body">
-      <div class="info-alert">⚠️ <strong>Cikgu Sarina Binti Hashim & Cikgu Tan Fong Lin</strong> — Slip Disc. Tugaskan ke <strong>Aras Bawah SAHAJA</strong>.</div>
-      <div class="info-section-title">📌 Agihan Guru Tidak Hadir & Tindakan</div>
-      <table class="agihan-table">
-        <thead><tr><th>Guru Tidak Hadir</th><th>Tindakan</th><th>Guru Relief</th><th>Nota</th></tr></thead>
-        <tbody>${rowsAgihan}</tbody>
-      </table>
-      <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap">
-        <span class="badge badge-dewan">🏛️ GABUNG DEWAN</span>
-        <span class="badge badge-relief">📚 RELIEF</span>
-        <span class="badge badge-serap">🔄 SERAP</span>
-        <span style="font-size:10px;color:#90A4AE;margin-left:auto">Legend</span>
-      </div>
-
-      <div class="waktu-grid" style="margin-top:16px">
-        <div class="waktu-table">
-          <div class="info-section-title">🕐 Jadual Waktu</div>
-          <table class="waktu-tbl">
-            <tbody>${rowsWaktu}</tbody>
-          </table>
-        </div>
-        <div class="guru-hadir-list">
-          <div class="info-section-title">✅ Guru Hadir (${guruHadir.length})</div>
-          <table style="width:100%;border-collapse:collapse;font-size:11px">
-            <tbody>${rowsHadir}</tbody>
-          </table>
-        </div>
+      <div class="info-alert">⚠️ <b>Cikgu Sarina Binti Hashim & Cikgu Tan Fong Lin</b> — Slip Disc. Aras Bawah SAHAJA.</div>
+      <div class="info-stitle">📌 Agihan Guru Tidak Hadir & Tindakan</div>
+      <table class="ag-tbl"><thead><tr><th>Guru Tidak Hadir</th><th>Tindakan</th><th>Guru Relief</th><th>Nota</th></tr></thead><tbody>${rowsAg}</tbody></table>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><span class="badge bd">🏛️ DEWAN</span><span class="badge br">📚 RELIEF</span><span class="badge bs">🔄 SERAP</span></div>
+      <div style="display:flex;gap:12px;margin-top:14px">
+        <div style="flex:0 0 175px"><div class="info-stitle">🕐 Waktu</div><table class="wktu-tbl"><tbody>${rowsW}</tbody></table></div>
+        <div style="flex:1"><div class="info-stitle">✅ Guru Hadir (${guruHadir.length})</div><table style="width:100%;border-collapse:collapse;font-size:10px"><tbody>${rowsH}</tbody></table></div>
       </div>
     </div>
-    <div class="info-footer">
-      <span>SK King Edward VII (1) Taiping · Sistem Jadual Anjal</span>
-      <span>Dicetak: ${tarikh}</span>
-    </div>
-  `;
+    <div class="info-footer"><span>SK King Edward VII (1) Taiping · Sistem Jadual Anjal</span><span>Dicetak: ${tCetak}</span></div>`;
 
-  document.getElementById('area-cetak').innerHTML = html;
   document.getElementById('modal').classList.add('aktif');
 }
 
-// ── CETAK ──
-function cetakInfografik() { window.print(); }
+function tutupModal(e){ if(e.target===document.getElementById('modal')) document.getElementById('modal').classList.remove('aktif'); }
 
-// ── TUTUP MODAL ──
-function tutupModal(e) {
-  if (e.target === document.getElementById('modal')) {
-    document.getElementById('modal').classList.remove('aktif');
-  }
-}
-
-// ── INIT ──
-setTarikh();
-binaGrid();
+// INIT
+updateTarikh();
+renderSenarai();
 </script>
 </body>
 </html>
