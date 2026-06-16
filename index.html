@@ -132,14 +132,30 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--teks);min-h
 .btn-png{padding:11px 14px;background:var(--hijau);color:white;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;}
 .btn-pdf{padding:11px 14px;background:var(--merah);color:white;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;}
 .btn-tutup{padding:11px 16px;background:#ECEFF1;color:#546E7A;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;}
+@page{size:A4 landscape;margin:8mm;}
 @media print{
   body>*:not(#modal){display:none!important;}
   #modal{display:block!important;position:static!important;background:white!important;padding:0!important;}
-  .modal-box{box-shadow:none!important;border-radius:0!important;max-width:100%!important;max-height:none!important;overflow:visible!important;}
+  .modal-box{box-shadow:none!important;border-radius:0!important;max-width:100%!important;max-height:none!important;overflow:visible!important;width:100%!important;}
   .modal-scroll{overflow:visible!important;max-height:none!important;}
   .modal-actions{display:none!important;}
   .modal-overlay{display:block!important;position:static!important;background:white!important;padding:0!important;}
-  .scroll-x{overflow:visible!important;}
+  .scroll-x{overflow:visible!important;width:100%!important;}
+  /* Kecilkan jadual supaya semua 11 waktu muat lebar A4 landscape */
+  .jt{font-size:7.5px!important;width:100%!important;table-layout:fixed!important;}
+  .jt th{font-size:6.5px!important;padding:3px 1px!important;min-width:0!important;}
+  .jt th:first-child{min-width:60px!important;}
+  .jt th:not(:first-child){min-width:0!important;}
+  .jt td{font-size:7px!important;padding:3px 1px!important;}
+  .slot-sel{font-size:7px!important;padding:1px!important;}
+  .tmp-eksport{font-size:7px!important;}
+  .info-body{padding:8px 12px!important;}
+  .info-header{padding:10px 14px!important;}
+  .beban-chip{font-size:7px!important;padding:1px 5px!important;}
+  /* Elak jadual terpotong tengah-tengah baris */
+  .jt tr{page-break-inside:avoid!important;}
+  .info-stitle{page-break-after:avoid!important;}
+  .dewan-box,.kantin-box{page-break-inside:avoid!important;}
 }
 </style>
 </head>
@@ -436,6 +452,7 @@ function janaInfografik(){
   <div class="info-mod ${kritikal?'info-mod-k':'info-mod-n'}"><span style="font-size:18px">${kritikal?'🚨':'✅'}</span><div><div>${kritikal?'MOD KRITIKAL — GABUNG DEWAN DIAKTIFKAN':'MOD NORMAL — AGIHAN RELIEF IKUT WAKTU'}</div><div style="font-size:10px;font-weight:400;opacity:0.9;margin-top:1px">${kritikal?'Lebih 10 guru tiada · Tahap 2 ke Dewan · Tahap 1 diisi bergilir':'Setiap guru ada waktu rehat · beban diagih adil'}</div></div></div>
   <div class="info-body">
     <div class="info-alert">⚠️ <b>Cikgu Sarina & Cikgu Tan Fong Lin</b> — Slip Disc. Tidak ditugaskan ke kelas Tingkat (atas tangga). 💡 Klik mana-mana nama dalam jadual untuk tukar guru.</div>
+    <div id="status-tindih"></div>
     ${isi}
   </div>
   <div class="info-footer"><span>SK King Edward VII (1) Taiping · Sistem Jadual Anjal</span><span>Dicetak: ${tC}</span></div>`;
@@ -503,30 +520,57 @@ function binaBeban(beban){
 
 // EKSPORT
 function prepEksport(on){
+  // Tukar dropdown jadi teks supaya nampak elok dalam imej
   document.querySelectorAll('.slot-sel').forEach(sel=>{
-    if(on){const txt=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:'—';const sp=document.createElement('span');sp.className='tmp-eksport';sp.style.fontWeight='600';sp.style.fontSize='9px';sp.style.color=sel.classList.contains('kosong')?'#E53935':'#1E88E5';sp.textContent=txt==='— kosong —'?'[KOSONG]':txt;sel.style.display='none';sel.parentNode.insertBefore(sp,sel);}
+    if(on){const txt=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:'—';const sp=document.createElement('span');sp.className='tmp-eksport';sp.style.fontWeight='600';sp.style.fontSize='10px';sp.style.color=sel.classList.contains('kosong')?'#E53935':'#1E88E5';sp.textContent=txt==='— kosong —'?'[KOSONG]':txt;sel.style.display='none';sel.parentNode.insertBefore(sp,sel);}
     else{sel.style.display='';const t=sel.parentNode.querySelector('.tmp-eksport');if(t)t.remove();}
   });
+  // Buka penuh semua kawasan skrol supaya jadual tak terpotong
+  document.querySelectorAll('.scroll-x').forEach(sx=>{
+    if(on){sx.dataset.ovx=sx.style.overflowX||'';sx.style.overflowX='visible';sx.style.width='max-content';}
+    else{sx.style.overflowX=sx.dataset.ovx||'';sx.style.width='';}
+  });
 }
-function eksportPNG(){
+
+function eksportImej(callback){
   prepEksport(true);
   const el=document.getElementById('area-cetak');
-  html2canvas(el,{scale:2,backgroundColor:'#ffffff'}).then(canvas=>{
-    const link=document.createElement('a');link.download='Jadual_Anjal_'+fmtC(tarikhTerpilih).replace(/\//g,'-')+'.png';link.href=canvas.toDataURL();link.click();prepEksport(false);
-  }).catch(e=>{alert('Ralat eksport PNG: '+e.message);prepEksport(false);});
+  // Beri masa render layout penuh dulu
+  setTimeout(()=>{
+    const lebarPenuh=el.scrollWidth; // lebar sebenar termasuk yang tersembunyi
+    html2canvas(el,{scale:2,backgroundColor:'#ffffff',width:lebarPenuh,windowWidth:lebarPenuh,scrollX:0,scrollY:0}).then(canvas=>{
+      prepEksport(false);
+      callback(canvas);
+    }).catch(e=>{prepEksport(false);alert('Ralat eksport: '+e.message);});
+  },150);
 }
+
+function eksportPNG(){
+  eksportImej(canvas=>{
+    const link=document.createElement('a');
+    link.download='Jadual_Anjal_'+fmtC(tarikhTerpilih).replace(/\//g,'-')+'.png';
+    link.href=canvas.toDataURL('image/png');link.click();
+  });
+}
+
 function eksportPDF(){
-  prepEksport(true);
-  try{
-    const {jsPDF}=window.jspdf;const el=document.getElementById('area-cetak');
-    html2canvas(el,{scale:2,backgroundColor:'#ffffff'}).then(canvas=>{
-      const img=canvas.toDataURL('image/png');
-      const pdf=new jsPDF('l','pt','a4');
-      const w=pdf.internal.pageSize.getWidth();const h=canvas.height*w/canvas.width;
-      pdf.addImage(img,'PNG',0,0,w,h>pdf.internal.pageSize.getHeight()?pdf.internal.pageSize.getHeight():h);
-      pdf.save('Jadual_Anjal_'+fmtC(tarikhTerpilih).replace(/\//g,'-')+'.pdf');prepEksport(false);
-    });
-  }catch(e){alert('Ralat eksport PDF: '+e.message);prepEksport(false);}
+  eksportImej(canvas=>{
+    const {jsPDF}=window.jspdf;
+    const img=canvas.toDataURL('image/png');
+    // Saiz PDF ikut nisbah imej (landscape kalau lebar)
+    const landscape=canvas.width>=canvas.height;
+    const pdf=new jsPDF(landscape?'l':'p','pt','a4');
+    const pw=pdf.internal.pageSize.getWidth();
+    const ph=pdf.internal.pageSize.getHeight();
+    // Muatkan imej penuh dalam halaman (skala ikut lebar)
+    let w=pw, h=canvas.height*pw/canvas.width;
+    if(h>ph){ // kalau tinggi melebihi, skala ikut tinggi
+      h=ph; w=canvas.width*ph/canvas.height;
+    }
+    const x=(pw-w)/2, y=(ph-h)/2>0?(ph-h)/2:0;
+    pdf.addImage(img,'PNG',x,y,w,h);
+    pdf.save('Jadual_Anjal_'+fmtC(tarikhTerpilih).replace(/\//g,'-')+'.pdf');
+  });
 }
 
 function tutupModal(e){if(e.target===document.getElementById('modal'))document.getElementById('modal').classList.remove('aktif');}
