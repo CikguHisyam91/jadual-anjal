@@ -660,19 +660,69 @@ function binaTabel(kelasList,jadual,reliefPool){
     });
     body+=`<tr>${row}</tr>`;
   });
-  return `<div class="scroll-x"><table class="jt"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div><div style="font-size:9px;color:#90A4AE;margin-top:4px">💡 Skrol kanan untuk semua waktu · Klik nama untuk tukar guru · ☕ Rehat 10:10–10:30</div>`;
+  return `<div class="scroll-x"><table class="jt"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div><div style="font-size:9px;color:#90A4AE;margin-top:4px">💡 Skrol kanan untuk semua waktu · Klik nama untuk tukar guru — sistem tunjuk <b style="color:#43A047">🟢 guru free</b> & <b style="color:#E53935">🔴 guru sedang bertugas</b> pada waktu itu · ☕ Rehat 10:10–10:30</div>`;
 }
 
 function binaDropdown(namaKelas,wBil,terpilih,kelas,reliefPool){
   const atas=kelas.aras!=='Bawah';
-  let opts=`<option value="">— kosong —</option>`;
-  reliefPool.forEach(g=>{
-    if(atas&&g.slipDisc)return; // slip disc tak boleh atas
-    if(!fokusBoleh(g,kelas))return;
-    opts+=`<option value="${g.nama}" ${g.nama===terpilih?'selected':''}>${pendekNama(g.nama)}</option>`;
-  });
   const kelasKosong=(!terpilih||terpilih==='—')?'kosong':'';
-  return `<select class="slot-sel ${kelasKosong}" data-kelas="${namaKelas}" data-waktu="${wBil}" onchange="tukarSlot(this)">${opts}</select>`;
+  // onfocus: segarkan senarai dengan status terkini (free/sibuk)
+  return `<select class="slot-sel ${kelasKosong}" data-kelas="${namaKelas}" data-waktu="${wBil}" data-atas="${atas}" data-terpilih="${terpilih||''}" onfocus="segarDropdown(this)" onchange="tukarSlot(this)">${binaOpsiDropdown(wBil,terpilih,kelas,atas,reliefPool)}</select>`;
+}
+
+// Bina senarai opsi dropdown dengan status guru pada waktu tertentu
+function binaOpsiDropdown(wBil,terpilih,kelas,atas,reliefPool){
+  // Kira guru yang SEDANG bertugas pada waktu ni (dari semua dropdown lain)
+  const sibuk=guruSibukPadaWaktu(wBil);
+  let opts=`<option value="">— kosong —</option>`;
+  // Guru FREE dulu (boleh masuk)
+  const free=[], sedang=[];
+  reliefPool.forEach(g=>{
+    if(atas&&g.slipDisc)return;
+    if(!fokusBoleh(g,kelas))return;
+    if(g.nama===terpilih)return; // yang sedang dipilih, papar berasingan
+    if(sibuk[g.nama])sedang.push(g); else free.push(g);
+  });
+  // Yang sedang dipilih (di atas sekali, ditanda)
+  if(terpilih&&terpilih!=='—'){
+    opts+=`<option value="${terpilih}" selected>✓ ${pendekNama(terpilih)} (sekarang)</option>`;
+  }
+  // Guru FREE — boleh masuk
+  if(free.length>0){
+    opts+=`<optgroup label="🟢 BOLEH MASUK (Free / Rehat)">`;
+    free.forEach(g=>{opts+=`<option value="${g.nama}">${pendekNama(g.nama)}</option>`;});
+    opts+=`</optgroup>`;
+  }
+  // Guru SEDANG bertugas — boleh tarik tapi akan tinggal kelas lain
+  if(sedang.length>0){
+    opts+=`<optgroup label="🔴 SEDANG BERTUGAS (di kelas lain)">`;
+    sedang.forEach(g=>{opts+=`<option value="${g.nama}">${pendekNama(g.nama)} — di ${sibuk[g.nama]}</option>`;});
+    opts+=`</optgroup>`;
+  }
+  return opts;
+}
+
+// Kira guru mana sedang bertugas (dan di mana) pada waktu tertentu
+function guruSibukPadaWaktu(wBil){
+  const sibuk={}; // nama => lokasi
+  document.querySelectorAll(`.slot-sel[data-waktu="${wBil}"]`).forEach(s=>{
+    if(s.value){const kls=s.getAttribute('data-kelas');sibuk[s.value]=kls;}
+  });
+  return sibuk;
+}
+
+// Segarkan dropdown dengan status terkini bila guru klik
+function segarDropdown(el){
+  const wBil=el.getAttribute('data-waktu');
+  const namaKelas=el.getAttribute('data-kelas');
+  const atas=el.getAttribute('data-atas')==='true';
+  const terpilih=el.value;
+  const kelas=KELAS.find(k=>k.nama===namaKelas);
+  if(!kelas)return;
+  const reliefPool=GURU.filter(g=>g.status==='available');
+  // Simpan pilihan semasa, bina semula opsi
+  el.innerHTML=binaOpsiDropdown(wBil,terpilih,kelas,atas,reliefPool);
+  el.value=terpilih;
 }
 
 function tukarSlot(el){
