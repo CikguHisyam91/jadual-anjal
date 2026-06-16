@@ -85,9 +85,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--teks);min-h
 .divider-urus{height:1px;background:#ECEFF1;margin:14px 0;}
 .fab{position:fixed;bottom:20px;right:16px;left:16px;background:linear-gradient(135deg,#1E88E5,#0D47A1);color:white;border:none;border-radius:14px;padding:15px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(30,136,229,0.45);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;z-index:90;}
 .fab:hover{transform:translateY(-2px);}.fab:active{transform:scale(0.98);}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;overflow-y:auto;padding:12px;}
-.modal-overlay.aktif{display:flex;flex-direction:column;align-items:center;}
-.modal-box{background:white;border-radius:14px;width:100%;max-width:1100px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);margin:auto;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;padding:12px;}
+.modal-overlay.aktif{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;}
+.modal-box{background:white;border-radius:14px;width:100%;max-width:1100px;box-shadow:0 20px 60px rgba(0,0,0,0.4);margin:auto 0;display:flex;flex-direction:column;max-height:calc(100vh - 24px);overflow:hidden;}
+.modal-scroll{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;}
 .info-header{background:linear-gradient(135deg,#0D1B2A,#1E88E5);padding:18px 22px;color:white;}
 .info-sekolah{font-size:9px;letter-spacing:2px;opacity:0.7;text-transform:uppercase;}
 .info-title{font-family:'Poppins',sans-serif;font-size:20px;font-weight:900;margin:3px 0;}
@@ -133,7 +134,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--teks);min-h
 @media print{
   body>*:not(#modal){display:none!important;}
   #modal{display:block!important;position:static!important;background:white!important;padding:0!important;}
-  .modal-box{box-shadow:none!important;border-radius:0!important;max-width:100%!important;}
+  .modal-box{box-shadow:none!important;border-radius:0!important;max-width:100%!important;max-height:none!important;overflow:visible!important;}
+  .modal-scroll{overflow:visible!important;max-height:none!important;}
   .modal-actions{display:none!important;}
   .modal-overlay{display:block!important;position:static!important;background:white!important;padding:0!important;}
   .scroll-x{overflow:visible!important;}
@@ -191,8 +193,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--teks);min-h
 </div>
 <button class="fab" onclick="janaInfografik()">⚙️ Jana Jadual Anjal</button>
 <div class="modal-overlay" id="modal" onclick="tutupModal(event)">
-  <div class="modal-box"><div id="area-cetak"></div>
-    <div class="modal-actions"><button class="btn-cetak" onclick="window.print()">🖨️ Cetak</button><button class="btn-png" onclick="eksportPNG()">📸 PNG</button><button class="btn-pdf" onclick="eksportPDF()">📄 PDF</button><button class="btn-tutup" onclick="document.getElementById('modal').classList.remove('aktif')">✕</button></div>
+  <div class="modal-box"><div class="modal-scroll"><div id="area-cetak"></div></div>
+  <div class="modal-actions"><button class="btn-cetak" onclick="window.print()">🖨️ Cetak</button><button class="btn-png" onclick="eksportPNG()">📸 PNG</button><button class="btn-pdf" onclick="eksportPDF()">📄 PDF</button><button class="btn-tutup" onclick="document.getElementById('modal').classList.remove('aktif')">✕</button></div>
   </div>
 </div>
 <script>
