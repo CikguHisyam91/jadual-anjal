@@ -111,16 +111,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--teks);min-h
 .dewan-guru-jaga{background:white;border-radius:7px;padding:8px 10px;margin-top:8px;font-size:11px;}
 .scroll-x{overflow-x:auto;border-radius:8px;border:1px solid #E0E0E0;}
 .jt{width:100%;border-collapse:collapse;font-size:10px;}
-.jt th{background:#1a237e;color:white;padding:6px 4px;text-align:center;font-size:8px;letter-spacing:0.3px;text-transform:uppercase;}
-.jt th:first-child{text-align:left;padding-left:8px;min-width:80px;position:sticky;left:0;background:#1a237e;}
-.jt td{padding:3px 3px;border-bottom:1px solid #ECEFF1;text-align:center;font-size:9px;}
+.jt th{background:#1a237e;color:white;padding:7px 5px;text-align:center;font-size:9px;letter-spacing:0.3px;text-transform:uppercase;}
+.jt th:first-child{text-align:left;padding-left:8px;min-width:88px;position:sticky;left:0;background:#1a237e;}
+.jt th:not(:first-child){min-width:115px;}
+.jt td{padding:5px 4px;border-bottom:1px solid #ECEFF1;text-align:center;font-size:11px;}
 .jt td:first-child{text-align:left;padding-left:8px;font-weight:700;background:#F5F7FA;position:sticky;left:0;}
 .jt tr:nth-child(even) td{background:#FAFBFC;}
 .jt tr:nth-child(even) td:first-child{background:#EEF1F5;}
 .sel-rehat{background:#FFF9C4 !important;color:#E65100;font-weight:700;}
 .sel-kantin{background:#FFE0B2 !important;color:#E65100;font-weight:700;}
 .sel-kosong{color:#CFD8DC;}
-.slot-sel{width:100%;border:1px solid transparent;background:transparent;font-size:9px;font-weight:600;text-align:center;font-family:'Inter',sans-serif;cursor:pointer;color:var(--biru);padding:3px 1px;border-radius:4px;appearance:none;-webkit-appearance:none;}
+.slot-sel{width:100%;border:1px solid transparent;background:transparent;font-size:10.5px;font-weight:600;text-align:center;font-family:'Inter',sans-serif;cursor:pointer;color:var(--biru);padding:4px 2px;border-radius:4px;appearance:none;-webkit-appearance:none;line-height:1.25;white-space:normal;}
 .slot-sel:hover,.slot-sel:focus{border-color:var(--biru);background:rgba(30,136,229,0.05);outline:none;}
 .slot-sel.kosong{border:1.5px dashed var(--merah);color:var(--merah);background:rgba(229,57,53,0.07);}
 .slot-sel option{color:#333;font-weight:400;}
@@ -324,7 +325,25 @@ function agihAdil(kelasKosong,guruRelief,minRehat){
   });
   return {jadual,beban};
 }
-function pendekNama(nama){if(nama==='—'||!nama)return '—';return nama.replace(/^(EN\.|PN\.|CIK |DR\.)\s*/i,'').split(' ').slice(0,2).join(' ');}
+function pendekNama(nama){
+  if(nama==='—'||!nama)return '—';
+  // Buang gelaran di depan
+  let n=nama.replace(/^(EN\.|PN\.|CIK |DR\.|TUAN |PUAN )\s*/i,'').trim();
+  const adaBin=/\b(BIN|BINTI|BT)\b/i.test(n);
+  if(adaBin){
+    // Nama Melayu: ambil nama sebelum BIN/BINTI (maks 2 perkataan)
+    const kata=n.split(/\s+/);
+    const idx=kata.findIndex(k=>/^(BIN|BINTI|BT)$/i.test(k));
+    return kata.slice(0,Math.min(idx,2)).join(' ');
+  }
+  // Nama India: buang A/P A/L, ambil 2 perkataan setiap sisi
+  if(/\bA\/[PL]\b/i.test(n)){
+    const sisi=n.split(/\s+A\/[PL]\s+/i);
+    return sisi[0].split(/\s+/).slice(0,2).join(' ');
+  }
+  // Nama Cina/lain: papar 3 perkataan pertama
+  return n.split(/\s+/).slice(0,3).join(' ');
+}
 
 // Enjin giliran Dewan: 2 guru jaga setiap waktu, bergilir supaya semua ada rehat
 function agihDewan(guruDewan, perWaktu){
