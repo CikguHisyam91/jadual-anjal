@@ -387,6 +387,65 @@ function agihAdil(kelasKosong,guruRelief,saizBlok,toleransi){
   });
   return {jadual,beban,amaranKelas:[...amaranKelas]};
 }
+
+// ENJIN BERSEPADU: Kelas Tahap 1 + Dewan diimbang sebagai SATU kolam guru
+// dewanPerlu: bilangan guru jaga Dewan setiap waktu (cth 2)
+function agihBersepadu(kelasT1, dewanPerlu, guruRelief, saizBlok, toleransi){
+  saizBlok=saizBlok||2; toleransi=(toleransi!==undefined)?toleransi:1;
+  const beban={};guruRelief.forEach(g=>beban[g.nama]=0);
+  const jadualKelas={};kelasT1.forEach(k=>jadualKelas[k.nama]={});
+  const jadualDewan={};WM.forEach(w=>jadualDewan[w]=[]);
+  const amaranKelas=new Set();
+  const blokSenarai=buatBlok(saizBlok);
+
+  // Senarai destinasi: kelas T1 + slot Dewan (semua dilayan sama rata)
+  const destinasi=[];
+  kelasT1.forEach(k=>destinasi.push({jenis:'kelas',kelas:k}));
+  for(let s=0;s<dewanPerlu;s++)destinasi.push({jenis:'dewan',slot:s});
+
+  blokSenarai.forEach((blok,bi)=>{
+    const pakai=new Set();
+    destinasi.forEach(d=>{
+      let calon;
+      if(d.jenis==='kelas'){
+        const atas=d.kelas.aras!=='Bawah';
+        calon=guruRelief.filter(g=>{if(pakai.has(g.nama))return false;if(atas&&g.slipDisc)return false;if(!fokusBoleh(g,d.kelas))return false;return true;});
+      }else{
+        // Dewan di aras bawah — terima semua guru yang free (termasuk slip disc)
+        calon=guruRelief.filter(g=>!pakai.has(g.nama));
+      }
+      if(calon.length===0){if(d.jenis==='kelas'){blok.forEach(w=>jadualKelas[d.kelas.nama][w]='—');amaranKelas.add(d.kelas.nama);}return;}
+      const bMin=Math.min(...calon.map(g=>beban[g.nama]));
+      let pilih=null;
+      // Kesinambungan: kekalkan guru blok sebelum jika beban dalam toleransi
+      if(bi>0){
+        let gSebNama=null;
+        if(d.jenis==='kelas'){const x=jadualKelas[d.kelas.nama][blokSenarai[bi-1][0]];if(x&&x!=='—')gSebNama=x;}
+        else{const x=jadualDewan[blokSenarai[bi-1][0]];if(x&&x[d.slot])gSebNama=x[d.slot];}
+        if(gSebNama){const gs=calon.find(g=>g.nama===gSebNama);if(gs&&beban[gs.nama]<=bMin+toleransi)pilih=gs;}
+      }
+      if(!pilih){const terendah=calon.filter(g=>beban[g.nama]===bMin);pilih=terendah[0];}
+      if(d.jenis==='kelas')blok.forEach(w=>{jadualKelas[d.kelas.nama][w]=pilih.nama;beban[pilih.nama]++;});
+      else blok.forEach(w=>{jadualDewan[w][d.slot]=pilih.nama;beban[pilih.nama]++;});
+      pakai.add(pilih.nama);
+    });
+  });
+  WM.forEach(w=>{jadualDewan[w]=jadualDewan[w].filter(x=>x);});
+  return {jadualKelas,jadualDewan,beban,amaranKelas:[...amaranKelas]};
+}
+
+// Dapatkan senarai unik guru yang jaga Dewan
+function senaraiGuruDewan(jadualDewan,reliefPool){
+  const nama=new Set();
+  WM.forEach(w=>(jadualDewan[w]||[]).forEach(n=>nama.add(n)));
+  return [...nama].map(n=>reliefPool.find(g=>g.nama===n)||{nama:n});
+}
+// Kira beban setiap guru Dewan
+function kiraBebanDewan(jadualDewan){
+  const beban={};
+  WM.forEach(w=>(jadualDewan[w]||[]).forEach(n=>{beban[n]=(beban[n]||0)+1;}));
+  return beban;
+}
 function pendekNama(nama){
   if(nama==='—'||!nama)return '—';
   // Buang gelaran di depan
@@ -466,29 +525,22 @@ function janaInfografik(){
     const kelasT1=kelasKosong.filter(k=>k.tahap===1);
     const kelasT2=kelasKosong.filter(k=>k.tahap===2);
 
-    // Bahagikan guru: sebahagian jaga Dewan, sebahagian relief Tahap 1
-    // Anggaran: setiap kelas Tahap 1 perlu ~1 guru/waktu. Baki guru jaga Dewan.
-    // Pastikan Dewan ada minimum 2 guru setiap waktu (bergilir).
-    const minGuruDewan=Math.min(reliefPool.length, Math.max(2, Math.ceil(reliefPool.length*0.3)));
-    const guruDewan=reliefPool.slice(0, minGuruDewan);
-    const guruT1=reliefPool.slice(minGuruDewan);
-    // Kalau guru T1 tak cukup, kongsi balik
-    const poolT1=guruT1.length>=kelasT1.length?guruT1:reliefPool;
+    // ENJIN BERSEPADU: Dewan + Kelas Tahap 1 diimbang sebagai SATU kolam guru
+    // Dewan perlu 2 guru/waktu (bergilir). Semua guru kongsi beban sama rata.
+    const hasil=agihBersepadu(kelasT1, 2, reliefPool, 2, 1);
+    jadualSemasa={jadual:hasil.jadualKelas,kelas:kelasT1};
 
-    const hasilT1=agihAdil(kelasT1,poolT1,2,1);
-    jadualSemasa={jadual:hasilT1.jadual,kelas:kelasT1};
-
-    // Bina jadual giliran Dewan (siapa jaga waktu mana)
-    const jadualDewan=agihDewan(guruDewan.length>0?guruDewan:reliefPool, 2);
-    _jadualDewanSimpan=jadualDewan;
+    // Tukar format jadualDewan untuk paparan & tab per-guru
+    const jadualDewanFormat={jadual:hasil.jadualDewan,guruDewan:senaraiGuruDewan(hasil.jadualDewan,reliefPool),beban:kiraBebanDewan(hasil.jadualDewan)};
+    _jadualDewanSimpan=jadualDewanFormat;
 
     let dewan=`<div class="dewan-box"><div class="dewan-title">🏛️ GABUNG DI DEWAN (TAHAP 2)</div><div class="dewan-list">`;
     dewan+=kelasT2.length>0?`Kelas berkumpul di Dewan: <b>${kelasT2.map(k=>k.nama).join(', ')}</b>.`:`Semua kelas Tahap 2 berkumpul di Dewan jika perlu.`;
     dewan+=`</div></div>`;
-    dewan+=`<div class="info-stitle">👮 Jadual Giliran Guru Jaga Dewan (Ikut Waktu)</div>${binaTabelDewan(jadualDewan)}`;
+    dewan+=`<div class="info-stitle">👮 Jadual Giliran Guru Jaga Dewan (Ikut Waktu)</div>${binaTabelDewan(jadualDewanFormat)}`;
 
-    const amaranT1=binaAmaran(hasilT1.amaranKelas,hasilT1.beban);
-    isi=kantinHtml+dewan+amaranT1+(kelasT1.length>0?`<div class="info-stitle">📋 Jadual Relief Kelas Tahap 1 (Boleh Edit)</div>${binaTabel(kelasT1,hasilT1.jadual,poolT1)}<div class="info-stitle">⚖️ Beban Guru Tahap 1 (Adil + Rehat)</div><div id="beban-box">${binaBeban(hasilT1.beban)}</div>`:'<div style="font-size:11px;color:#607D8B;padding:8px;background:#F5F7FA;border-radius:8px">✅ Semua kelas Tahap 1 ada guru.</div>');
+    const amaranT1=binaAmaran(hasil.amaranKelas,hasil.beban);
+    isi=kantinHtml+dewan+amaranT1+(kelasT1.length>0?`<div class="info-stitle">📋 Jadual Relief Kelas Tahap 1 (Boleh Edit)</div>${binaTabel(kelasT1,hasil.jadualKelas,reliefPool)}<div class="info-stitle">⚖️ Beban SEMUA Guru — Dewan + Kelas (Adil Bersepadu)</div><div id="beban-box">${binaBeban(hasil.beban)}</div>`:'<div style="font-size:11px;color:#607D8B;padding:8px;background:#F5F7FA;border-radius:8px">✅ Semua kelas Tahap 1 ada guru.</div>');
   }
 
   // Kumpul data untuk jadual per guru
