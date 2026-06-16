@@ -505,24 +505,30 @@ function janaInfografik(){
   const tC=fmtC(tarikhTerpilih),tP=fmtP(tarikhTerpilih);
   const now=new Date();const masa=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
-  const bilKelasKosong=Math.min(guruAbsent.length,KELAS.length);
-  let kelasKosong=KELAS.slice(0,bilKelasKosong);
-
   let isi='';
   let kantinHtml='';
+  let bilKelasRelief=0; // untuk statistik
   if(guruKantin.length>0){
     kantinHtml=`<div class="kantin-box"><div class="kantin-title">🍔 GURU BERTUGAS KANTIN (Tahap 2 · 7:40–10:00 pagi)</div><div class="kantin-names">${guruKantin.map(g=>g.nama).join(' · ')}</div></div>`;
   }
 
   if(!kritikal){
     _jadualDewanSimpan=null;
+    // MOD NORMAL: hanya kelas yang gurunya tidak hadir perlu relief.
+    // Anggaran: setiap guru absent = 1 kelas. Ambil kelas ikut bilangan absent.
+    const bilKelasKosong=Math.min(guruAbsent.length,KELAS.length);
+    const kelasKosong=KELAS.slice(0,bilKelasKosong);
+    bilKelasRelief=kelasKosong.length;
     const hasil=agihAdil(kelasKosong,reliefPool,2,0);
     jadualSemasa={jadual:hasil.jadual,kelas:kelasKosong};
     const amaranHtml=binaAmaran(hasil.amaranKelas,hasil.beban);
     isi=kantinHtml+(kelasKosong.length===0?'<div style="text-align:center;padding:20px;color:#9E9E9E;font-style:italic">✅ Tiada guru tidak hadir — semua kelas ada guru.</div>':`${amaranHtml}<div class="info-stitle">📋 Jadual Relief Ikut Waktu (Boleh Edit)</div>${binaTabel(kelasKosong,hasil.jadual,reliefPool)}<div class="info-stitle">⚖️ Beban Guru Relief (Adil + Rehat)</div><div id="beban-box">${binaBeban(hasil.beban)}</div>`);
   } else {
-    const kelasT1=kelasKosong.filter(k=>k.tahap===1);
-    const kelasT2=kelasKosong.filter(k=>k.tahap===2);
+    // MOD KRITIKAL: SEMUA kelas Tahap 2 (Darjah 4-6) berkumpul di Dewan.
+    // SEMUA kelas Tahap 1 (Darjah 1-3) perlu relief.
+    const kelasT1=KELAS.filter(k=>k.tahap===1);
+    const kelasT2=KELAS.filter(k=>k.tahap===2);
+    bilKelasRelief=kelasT1.length;
 
     // ENJIN BERSEPADU: Dewan + Kelas Tahap 1 diimbang sebagai SATU kolam guru
     // Toleransi 0 = keadilan maksimum (beza beban hanya 1 waktu)
@@ -552,7 +558,7 @@ function janaInfografik(){
     <div class="info-stat"><div class="info-stat-num" style="color:#43A047">${reliefPool.length}</div><div class="info-stat-lbl">Available</div></div>
     <div class="info-stat"><div class="info-stat-num" style="color:#E53935">${guruAbsent.length}</div><div class="info-stat-lbl">Tidak Hadir</div></div>
     <div class="info-stat"><div class="info-stat-num" style="color:#DD6B20">${guruKantin.length}</div><div class="info-stat-lbl">Kantin</div></div>
-    <div class="info-stat"><div class="info-stat-num" style="color:#FB8C00">${kelasKosong.length}</div><div class="info-stat-lbl">Kelas Relief</div></div>
+    <div class="info-stat"><div class="info-stat-num" style="color:#FB8C00">${bilKelasRelief}</div><div class="info-stat-lbl">Kelas Relief</div></div>
   </div>
   <div class="info-mod ${kritikal?'info-mod-k':'info-mod-n'}"><span style="font-size:18px">${kritikal?'🚨':'✅'}</span><div><div>${kritikal?'MOD KRITIKAL — GABUNG DEWAN DIAKTIFKAN':'MOD NORMAL — AGIHAN RELIEF IKUT WAKTU'}</div><div style="font-size:10px;font-weight:400;opacity:0.9;margin-top:1px">${kritikal?'Lebih 10 guru tiada · Tahap 2 ke Dewan · Tahap 1 diisi bergilir':'Setiap guru ada waktu rehat · beban diagih adil'}</div></div></div>
   <div class="info-tabs">
