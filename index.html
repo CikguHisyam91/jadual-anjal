@@ -127,6 +127,23 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--teks);min-h
 .slot-sel option{color:#333;font-weight:400;}
 .beban-chip{display:inline-block;background:#E8F5E9;color:#2E7D32;border-radius:12px;padding:2px 8px;font-size:9px;font-weight:700;margin:2px;}
 .info-footer{background:#37474F;color:rgba(255,255,255,0.8);padding:9px 22px;display:flex;justify-content:space-between;font-size:10px;}
+/* Tab dalam infografik */
+.info-tabs{display:flex;gap:6px;padding:12px 22px 0;background:white;}
+.info-tab{flex:1;padding:10px 6px;text-align:center;font-size:11px;font-weight:700;color:#90A4AE;cursor:pointer;border:2px solid #E0E0E0;border-bottom:none;border-radius:9px 9px 0 0;background:#F5F7FA;transition:all 0.15s;}
+.info-tab.aktif{color:var(--biru);border-color:var(--biru);background:white;}
+.tab-isi{display:none;}
+.tab-isi.aktif{display:block;}
+/* Jadual per guru */
+.pg-tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.pg-tbl th{background:#1a237e;color:white;padding:8px 10px;text-align:left;font-size:10px;letter-spacing:0.3px;text-transform:uppercase;}
+.pg-tbl td{padding:7px 10px;border-bottom:1px solid #ECEFF1;vertical-align:top;}
+.pg-tbl tr:nth-child(even) td{background:#F8FAFC;}
+.pg-nama{font-weight:700;color:var(--teks);font-size:12px;}
+.pg-tugas{display:inline-block;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;margin:1px 2px 1px 0;}
+.pg-kelas{background:#E3F2FD;color:#1565C0;}
+.pg-dewan{background:#FFEBEE;color:#C62828;}
+.pg-kantin{background:#FFF3E0;color:#E65100;}
+.pg-rehat{background:#F1F8E9;color:#558B2F;}
 .modal-actions{display:flex;gap:6px;padding:12px 14px;background:#F5F5F5;border-top:1px solid #E0E0E0;flex-wrap:wrap;}
 .btn-cetak{flex:1;min-width:120px;padding:11px;background:#1a237e;color:white;border:none;border-radius:9px;font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
 .btn-png{padding:11px 14px;background:var(--hijau);color:white;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;}
@@ -235,6 +252,7 @@ function buatStateAsal(){return GURU_ASAL.map(g=>({...g,status:'available',fokus
 let GURU=JSON.parse(localStorage.getItem('ja_guru_v3')||'null')||buatStateAsal();
 let tarikhTerpilih=new Date();
 let jadualSemasa=null; // simpan jadual untuk edit dropdown
+let _jadualDewanSimpan=null; // simpan jadual Dewan untuk tab per-guru
 function simpanGuru(){localStorage.setItem('ja_guru_v3',JSON.stringify(GURU));}
 
 const HARI=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
@@ -439,6 +457,7 @@ function janaInfografik(){
   }
 
   if(!kritikal){
+    _jadualDewanSimpan=null;
     const hasil=agihAdil(kelasKosong,reliefPool,2,1);
     jadualSemasa={jadual:hasil.jadual,kelas:kelasKosong};
     const amaranHtml=binaAmaran(hasil.amaranKelas,hasil.beban);
@@ -461,6 +480,7 @@ function janaInfografik(){
 
     // Bina jadual giliran Dewan (siapa jaga waktu mana)
     const jadualDewan=agihDewan(guruDewan.length>0?guruDewan:reliefPool, 2);
+    _jadualDewanSimpan=jadualDewan;
 
     let dewan=`<div class="dewan-box"><div class="dewan-title">🏛️ GABUNG DI DEWAN (TAHAP 2)</div><div class="dewan-list">`;
     dewan+=kelasT2.length>0?`Kelas berkumpul di Dewan: <b>${kelasT2.map(k=>k.nama).join(', ')}</b>.`:`Semua kelas Tahap 2 berkumpul di Dewan jika perlu.`;
@@ -471,6 +491,10 @@ function janaInfografik(){
     isi=kantinHtml+dewan+amaranT1+(kelasT1.length>0?`<div class="info-stitle">📋 Jadual Relief Kelas Tahap 1 (Boleh Edit)</div>${binaTabel(kelasT1,hasilT1.jadual,poolT1)}<div class="info-stitle">⚖️ Beban Guru Tahap 1 (Adil + Rehat)</div><div id="beban-box">${binaBeban(hasilT1.beban)}</div>`:'<div style="font-size:11px;color:#607D8B;padding:8px;background:#F5F7FA;border-radius:8px">✅ Semua kelas Tahap 1 ada guru.</div>');
   }
 
+  // Kumpul data untuk jadual per guru
+  const tugasanGuru=kumpulTugasanGuru(jadualSemasa, guruKantin, kritikal?_jadualDewanSimpan:null);
+  const jadualPerGuruHtml=binaJadualPerGuru(tugasanGuru);
+
   const html=`
   <div class="info-header"><div class="info-sekolah">SK KING EDWARD VII (1) · TAIPING, PERAK</div><div class="info-title">📋 JADUAL ANJAL HARIAN</div><div class="info-meta">${tP} &nbsp;|&nbsp; Jana: ${masa} &nbsp;|&nbsp; Tidak hadir: ${guruAbsent.length} orang</div></div>
   <div class="info-stats">
@@ -480,14 +504,87 @@ function janaInfografik(){
     <div class="info-stat"><div class="info-stat-num" style="color:#FB8C00">${kelasKosong.length}</div><div class="info-stat-lbl">Kelas Relief</div></div>
   </div>
   <div class="info-mod ${kritikal?'info-mod-k':'info-mod-n'}"><span style="font-size:18px">${kritikal?'🚨':'✅'}</span><div><div>${kritikal?'MOD KRITIKAL — GABUNG DEWAN DIAKTIFKAN':'MOD NORMAL — AGIHAN RELIEF IKUT WAKTU'}</div><div style="font-size:10px;font-weight:400;opacity:0.9;margin-top:1px">${kritikal?'Lebih 10 guru tiada · Tahap 2 ke Dewan · Tahap 1 diisi bergilir':'Setiap guru ada waktu rehat · beban diagih adil'}</div></div></div>
+  <div class="info-tabs">
+    <div class="info-tab aktif" id="itab-kelas" onclick="tukInfoTab('kelas')">📋 Ikut Kelas</div>
+    <div class="info-tab" id="itab-guru" onclick="tukInfoTab('guru')">👤 Ikut Guru</div>
+  </div>
   <div class="info-body">
     <div class="info-alert">⚠️ <b>Cikgu Sarina & Cikgu Tan Fong Lin</b> — Slip Disc. Tidak ditugaskan ke kelas Tingkat (atas tangga). 💡 Klik mana-mana nama dalam jadual untuk tukar guru.</div>
-    <div id="status-tindih"></div>
-    ${isi}
+    <div id="tab-isi-kelas" class="tab-isi aktif">${isi}</div>
+    <div id="tab-isi-guru" class="tab-isi">${jadualPerGuruHtml}</div>
   </div>
   <div class="info-footer"><span>SK King Edward VII (1) Taiping · Sistem Jadual Anjal</span><span>Dicetak: ${tC}</span></div>`;
   document.getElementById('area-cetak').innerHTML=html;
   document.getElementById('modal').classList.add('aktif');
+}
+
+// Tukar tab dalam infografik
+function tukInfoTab(t){
+  document.getElementById('tab-isi-kelas').className='tab-isi'+(t==='kelas'?' aktif':'');
+  document.getElementById('tab-isi-guru').className='tab-isi'+(t==='guru'?' aktif':'');
+  document.getElementById('itab-kelas').className='info-tab'+(t==='kelas'?' aktif':'');
+  document.getElementById('itab-guru').className='info-tab'+(t==='guru'?' aktif':'');
+}
+
+// Kumpul tugasan setiap guru ikut waktu
+function kumpulTugasanGuru(jadualKelas, guruKantin, jadualDewan){
+  const tugas={}; // nama => {waktu => lokasi}
+  // Dari jadual kelas
+  if(jadualKelas&&jadualKelas.jadual){
+    jadualKelas.kelas.forEach(k=>{
+      WM.forEach(w=>{
+        const g=jadualKelas.jadual[k.nama][w];
+        if(g&&g!=='—'){if(!tugas[g])tugas[g]={};tugas[g][w]={lokasi:k.nama,jenis:'kelas'};}
+      });
+    });
+  }
+  // Dari jadual Dewan
+  if(jadualDewan&&jadualDewan.jadual){
+    WM.forEach(w=>{
+      (jadualDewan.jadual[w]||[]).forEach(nama=>{
+        if(!tugas[nama])tugas[nama]={};tugas[nama][w]={lokasi:'DEWAN',jenis:'dewan'};
+      });
+    });
+  }
+  // Guru kantin (waktu pagi 1-5)
+  (guruKantin||[]).forEach(g=>{
+    if(!tugas[g.nama])tugas[g.nama]={};
+    [1,2,3,4,5].forEach(w=>{tugas[g.nama][w]={lokasi:'KANTIN',jenis:'kantin'};});
+  });
+  return tugas;
+}
+
+// Bina jadual ringkas per guru: Bil | Nama | Tugasan ikut waktu
+function binaJadualPerGuru(tugas){
+  const senarai=Object.keys(tugas).sort();
+  if(senarai.length===0)return '<div style="text-align:center;padding:20px;color:#9E9E9E;font-style:italic">Tiada tugasan guru untuk dipaparkan.</div>';
+  let body='';
+  senarai.forEach((nama,idx)=>{
+    // Bina senarai tugasan ikut waktu (gabung waktu berturut lokasi sama)
+    const blok=[];
+    WM.forEach(w=>{
+      const t=tugas[nama][w];
+      const lok=t?t.lokasi:'REHAT';
+      const jenis=t?t.jenis:'rehat';
+      const wInfo=WAKTU.find(x=>x.bil===w);
+      if(blok.length>0 && blok[blok.length-1].lokasi===lok){
+        blok[blok.length-1].tamat=wInfo.tamat;
+        blok[blok.length-1].wList.push(w);
+      }else{
+        blok.push({lokasi:lok,jenis,mula:wInfo.mula,tamat:wInfo.tamat,wList:[w]});
+      }
+    });
+    // Papar hanya blok yang ADA tugasan (bukan rehat) + ringkasan
+    const tugasanChips=blok.filter(b=>b.jenis!=='rehat').map(b=>{
+      const cls=b.jenis==='kelas'?'pg-kelas':b.jenis==='dewan'?'pg-dewan':'pg-kantin';
+      const ikon=b.jenis==='kelas'?'📚':b.jenis==='dewan'?'🏛️':'🍔';
+      return `<span class="pg-tugas ${cls}">${ikon} ${b.lokasi} <b>(${b.mula}–${b.tamat})</b></span>`;
+    }).join('');
+    const jumW=blok.filter(b=>b.jenis!=='rehat').reduce((s,b)=>s+b.wList.length,0);
+    const tugasanFinal=tugasanChips||'<span class="pg-tugas pg-rehat">✅ Tiada tugasan relief</span>';
+    body+=`<tr><td style="text-align:center;font-weight:700;color:#90A4AE">${idx+1}</td><td><div class="pg-nama">${pendekNama(nama)}</div><div style="font-size:9px;color:#90A4AE;margin-top:1px">${jumW} waktu bertugas</div></td><td>${tugasanFinal}</td></tr>`;
+  });
+  return `<div class="info-stitle">👤 Jadual Tugasan Setiap Guru (Ikut Masa)</div><div style="font-size:10px;color:#607D8B;margin-bottom:8px">📌 Setiap guru boleh lihat nama sendiri & tahu perlu berada di mana pada jam berapa.</div><div class="scroll-x"><table class="pg-tbl"><thead><tr><th style="width:40px;text-align:center">Bil</th><th style="width:160px">Nama Guru</th><th>Lokasi & Masa Bertugas</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
 function binaTabel(kelasList,jadual,reliefPool){
