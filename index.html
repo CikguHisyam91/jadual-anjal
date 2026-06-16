@@ -326,6 +326,38 @@ function agihAdil(kelasKosong,guruRelief,minRehat){
 }
 function pendekNama(nama){if(nama==='—'||!nama)return '—';return nama.replace(/^(EN\.|PN\.|CIK |DR\.)\s*/i,'').split(' ').slice(0,2).join(' ');}
 
+// Enjin giliran Dewan: 2 guru jaga setiap waktu, bergilir supaya semua ada rehat
+function agihDewan(guruDewan, perWaktu){
+  const beban={};guruDewan.forEach(g=>beban[g.nama]=0);
+  const jadual={}; // jadual[waktuBil] = [nama guru...]
+  WM.forEach(w=>{
+    jadual[w]=[];
+    // Pilih 'perWaktu' guru dengan beban paling rendah
+    const calon=[...guruDewan].sort((a,b)=>beban[a.nama]-beban[b.nama]);
+    const bil=Math.min(perWaktu,calon.length);
+    for(let i=0;i<bil;i++){jadual[w].push(calon[i].nama);beban[calon[i].nama]++;}
+  });
+  return {jadual,beban,guruDewan};
+}
+
+function binaTabelDewan(hasilDewan){
+  if(!hasilDewan.guruDewan||hasilDewan.guruDewan.length===0)
+    return '<div style="font-size:11px;color:#9E9E9E;padding:8px">Tiada guru tersedia untuk jaga Dewan.</div>';
+  let head='<th>Waktu</th><th>Masa</th><th>Guru Bertugas di Dewan</th>';
+  let body='';
+  WAKTU.forEach(w=>{
+    if(w.rehat){
+      body+=`<tr><td class="sel-rehat">☕ REHAT</td><td class="sel-rehat">${w.mula}–${w.tamat}</td><td class="sel-rehat">Semua rehat serentak</td></tr>`;
+    }else{
+      const guru=hasilDewan.jadual[w.bil]||[];
+      const namaList=guru.length>0?guru.map(n=>pendekNama(n)).join(' &nbsp;+&nbsp; '):'<span style="color:#E53935">⚠️ Perlu guru</span>';
+      body+=`<tr><td style="font-weight:700">W${w.bil}</td><td style="color:#607D8B">${w.mula}–${w.tamat}</td><td style="font-weight:600;color:#1E88E5">${namaList}</td></tr>`;
+    }
+  });
+  let bebanHtml='<div style="margin-top:8px;line-height:2">'+Object.entries(hasilDewan.beban).sort((a,b)=>b[1]-a[1]).map(([n,b])=>`<span class="beban-chip" style="background:#FFE0B2;color:#E65100">${pendekNama(n)}: ${b}W jaga · ${WM.length-b}W rehat</span>`).join('')+'</div>';
+  return `<div class="scroll-x"><table class="jt"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div><div style="font-size:9px;color:#90A4AE;margin-top:4px">👮 ${hasilDewan.guruDewan.length} guru jaga Dewan bergilir · 2 guru setiap waktu · semua ada ruang rehat</div>${bebanHtml}`;
+}
+
 function janaInfografik(){
   const guruAbsent=GURU.filter(g=>g.status==='absent');
   const reliefPool=GURU.filter(g=>g.status==='available');
@@ -350,12 +382,28 @@ function janaInfografik(){
   } else {
     const kelasT1=kelasKosong.filter(k=>k.tahap===1);
     const kelasT2=kelasKosong.filter(k=>k.tahap===2);
-    const hasil=agihAdil(kelasT1,reliefPool,2);
-    jadualSemasa={jadual:hasil.jadual,kelas:kelasT1};
+
+    // Bahagikan guru: sebahagian jaga Dewan, sebahagian relief Tahap 1
+    // Anggaran: setiap kelas Tahap 1 perlu ~1 guru/waktu. Baki guru jaga Dewan.
+    // Pastikan Dewan ada minimum 2 guru setiap waktu (bergilir).
+    const minGuruDewan=Math.min(reliefPool.length, Math.max(2, Math.ceil(reliefPool.length*0.3)));
+    const guruDewan=reliefPool.slice(0, minGuruDewan);
+    const guruT1=reliefPool.slice(minGuruDewan);
+    // Kalau guru T1 tak cukup, kongsi balik
+    const poolT1=guruT1.length>=kelasT1.length?guruT1:reliefPool;
+
+    const hasilT1=agihAdil(kelasT1,poolT1,2);
+    jadualSemasa={jadual:hasilT1.jadual,kelas:kelasT1};
+
+    // Bina jadual giliran Dewan (siapa jaga waktu mana)
+    const jadualDewan=agihDewan(guruDewan.length>0?guruDewan:reliefPool, 2);
+
     let dewan=`<div class="dewan-box"><div class="dewan-title">🏛️ GABUNG DI DEWAN (TAHAP 2)</div><div class="dewan-list">`;
-    dewan+=kelasT2.length>0?`Kelas berkumpul di Dewan: <b>${kelasT2.map(k=>k.nama).join(', ')}</b>.`:`Tiada kelas Tahap 2 yang gurunya tidak hadir.`;
-    dewan+=`<div class="dewan-guru-jaga">👮 <b>Guru Jaga Dewan (Bergilir):</b> Guru hadir bergilir ikut waktu supaya semua ada ruang rehat. GPK selaraskan giliran.</div></div></div>`;
-    isi=kantinHtml+dewan+(kelasT1.length>0?`<div class="info-stitle">📋 Jadual Relief Kelas Tahap 1 (Boleh Edit)</div>${binaTabel(kelasT1,hasil.jadual,reliefPool)}<div class="info-stitle">⚖️ Beban Guru (Adil + Rehat)</div><div id="beban-box">${binaBeban(hasil.beban)}</div>`:'<div style="font-size:11px;color:#607D8B;padding:8px;background:#F5F7FA;border-radius:8px">✅ Semua kelas Tahap 1 ada guru.</div>');
+    dewan+=kelasT2.length>0?`Kelas berkumpul di Dewan: <b>${kelasT2.map(k=>k.nama).join(', ')}</b>.`:`Semua kelas Tahap 2 berkumpul di Dewan jika perlu.`;
+    dewan+=`</div></div>`;
+    dewan+=`<div class="info-stitle">👮 Jadual Giliran Guru Jaga Dewan (Ikut Waktu)</div>${binaTabelDewan(jadualDewan)}`;
+
+    isi=kantinHtml+dewan+(kelasT1.length>0?`<div class="info-stitle">📋 Jadual Relief Kelas Tahap 1 (Boleh Edit)</div>${binaTabel(kelasT1,hasilT1.jadual,poolT1)}<div class="info-stitle">⚖️ Beban Guru Tahap 1 (Adil + Rehat)</div><div id="beban-box">${binaBeban(hasilT1.beban)}</div>`:'<div style="font-size:11px;color:#607D8B;padding:8px;background:#F5F7FA;border-radius:8px">✅ Semua kelas Tahap 1 ada guru.</div>');
   }
 
   const html=`
