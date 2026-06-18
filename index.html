@@ -124,7 +124,30 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--teks);min-h
 .sel-rehat{background:#FFF9C4 !important;color:#E65100;font-weight:700;}
 .sel-kantin{background:#FFE0B2 !important;color:#E65100;font-weight:700;}
 .sel-kosong{color:#CFD8DC;}
-.slot-sel{width:100%;border:1px solid transparent;background:transparent;font-size:10.5px;font-weight:600;text-align:center;font-family:'Inter',sans-serif;cursor:pointer;color:var(--biru);padding:4px 2px;border-radius:4px;appearance:none;-webkit-appearance:none;line-height:1.25;white-space:normal;}
+.slot-sel{width:100%;min-height:24px;border:1px solid transparent;background:transparent;font-size:10.5px;font-weight:600;text-align:center;font-family:'Inter',sans-serif;cursor:pointer;color:var(--biru);padding:4px 2px;border-radius:4px;line-height:1.25;white-space:normal;display:flex;align-items:center;justify-content:center;transition:background 0.15s;}
+.slot-sel:hover{background:rgba(30,136,229,0.1);}
+.slot-sel.kosong{border:1.5px dashed var(--merah);color:var(--merah);background:rgba(229,57,53,0.05);font-size:9px;}
+/* POP-UP PILIH GURU */
+.pop-pilih-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;align-items:center;justify-content:center;padding:16px;}
+.pop-pilih-overlay.buka{display:flex;}
+.pop-pilih-box{background:white;border-radius:14px;width:100%;max-width:380px;max-height:75vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.3);}
+.pop-head{background:var(--navy);color:white;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-size:12px;}
+.pop-tutup{cursor:pointer;font-size:16px;opacity:0.8;padding:0 4px;}
+.pop-tutup:hover{opacity:1;}
+.pop-cari-wrap{padding:10px 12px;border-bottom:1px solid #ECEFF1;}
+.pop-cari{width:100%;padding:9px 12px;border:2px solid #E0E0E0;border-radius:9px;font-size:13px;font-family:'Inter',sans-serif;outline:none;}
+.pop-cari:focus{border-color:var(--biru);}
+.pop-senarai{overflow-y:auto;flex:1;padding:6px;}
+.pop-label{font-size:9px;font-weight:700;color:#90A4AE;text-transform:uppercase;letter-spacing:0.5px;padding:8px 10px 4px;}
+.pop-item{padding:11px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--teks);display:flex;justify-content:space-between;align-items:center;gap:8px;transition:background 0.1s;}
+.pop-item:hover{background:#E3F2FD;}
+.pop-item:active{background:#BBDEFB;}
+.pop-kosong{color:#E53935;font-weight:600;}
+.pop-pilih{background:#F1F8E9;}
+.pop-sibuk{color:#90A4AE;}
+.pop-rehat{font-size:10px;color:#43A047;font-weight:600;}
+.pop-di{font-size:10px;color:#E53935;font-weight:600;}
+.pop-tag-now{font-size:9px;background:#C8E6C9;color:#2E7D32;border-radius:4px;padding:1px 6px;}
 .slot-sel:hover,.slot-sel:focus{border-color:var(--biru);background:rgba(30,136,229,0.05);outline:none;}
 .slot-sel.kosong{border:1.5px dashed var(--merah);color:var(--merah);background:rgba(229,57,53,0.07);}
 .slot-sel option{color:#333;font-weight:400;}
@@ -233,6 +256,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--teks);min-h
   <div class="modal-box"><div class="modal-scroll"><div id="area-cetak"></div></div>
   <div class="modal-actions"><button class="btn-cetak" onclick="cetakBersih()">🖨️ Cetak</button><button class="btn-png" onclick="eksportPNG()">📸 PNG</button><button class="btn-pdf" onclick="eksportPDF()">📄 PDF</button><button class="btn-tutup" onclick="document.getElementById('modal').classList.remove('aktif')">✕</button></div>
   </div>
+</div>
+<!-- POP-UP PILIH GURU -->
+<div class="pop-pilih-overlay" id="pop-pilih-overlay" onclick="if(event.target===this)tutupPilihGuru()">
+  <div class="pop-pilih-box" id="pop-pilih-guru"></div>
 </div>
 <script>
 const GURU_ASAL=[
@@ -694,132 +721,105 @@ function binaTabel(kelasList,jadual,reliefPool){
 function binaDropdown(namaKelas,wBil,terpilih,kelas,reliefPool){
   const atas=kelas.aras!=='Bawah';
   const kelasKosong=(!terpilih||terpilih==='—')?'kosong':'';
-  // onfocus: segarkan senarai dengan status terkini (free/sibuk)
-  return `<select class="slot-sel ${kelasKosong}" data-kelas="${namaKelas}" data-waktu="${wBil}" data-atas="${atas}" data-terpilih="${terpilih||''}" onfocus="segarDropdown(this)" onchange="tukarSlot(this)">${binaOpsiDropdown(wBil,terpilih,kelas,atas,reliefPool)}</select>`;
+  const papar=(terpilih&&terpilih!=='—')?pendekNama(terpilih):'+ pilih';
+  // Sel boleh klik — buka pop-up bila diklik (tak keluar sendiri)
+  return `<div class="slot-sel ${kelasKosong}" data-kelas="${namaKelas}" data-waktu="${wBil}" data-atas="${atas}" data-nama="${terpilih||''}" onclick="bukaPilihGuru(this)">${papar}</div>`;
 }
 
-// Bina senarai opsi dropdown dengan status guru pada waktu tertentu
-function binaOpsiDropdown(wBil,terpilih,kelas,atas,reliefPool){
-  // Kira guru yang SEDANG bertugas pada waktu ni (dari semua dropdown lain)
-  const sibuk=guruSibukPadaWaktu(wBil);
-  // Kira beban semasa setiap guru (jumlah waktu ditugaskan) untuk susun ikut paling rehat
-  const bebanSemasa=kiraBebanSemasaSemua();
-  let opts=`<option value="">— kosong —</option>`;
-  // Guru FREE dulu (boleh masuk)
-  const free=[], sedang=[];
-  reliefPool.forEach(g=>{
-    if(atas&&g.slipDisc)return;
-    if(!fokusBoleh(g,kelas))return;
-    if(g.nama===terpilih)return; // yang sedang dipilih, papar berasingan
-    if(sibuk[g.nama])sedang.push(g); else free.push(g);
-  });
-  // SUSUN guru free: paling banyak rehat (beban rendah) di ATAS — auto suggest
-  free.sort((a,b)=>(bebanSemasa[a.nama]||0)-(bebanSemasa[b.nama]||0));
-  sedang.sort((a,b)=>(bebanSemasa[a.nama]||0)-(bebanSemasa[b.nama]||0));
-  // Yang sedang dipilih (di atas sekali) — guna nama BERSIH supaya paparan & cetak kemas
-  if(terpilih&&terpilih!=='—'){
-    opts+=`<optgroup label="✓ Guru Sekarang"><option value="${terpilih}" selected>${pendekNama(terpilih)}</option></optgroup>`;
-  }
-  // Guru FREE — disusun paling banyak rehat dulu (cadangan terbaik)
-  if(free.length>0){
-    opts+=`<optgroup label="🟢 BOLEH MASUK (paling banyak rehat di atas)">`;
-    free.forEach((g,i)=>{
-      const rehat=WM.length-(bebanSemasa[g.nama]||0);
-      const tanda=i===0?'⭐ ':''; // bintang untuk cadangan terbaik
-      opts+=`<option value="${g.nama}">${tanda}${pendekNama(g.nama)} — rehat ${rehat}W</option>`;
-    });
-    opts+=`</optgroup>`;
-  }
-  // Guru SEDANG bertugas — boleh tarik tapi akan tinggal kelas lain
-  if(sedang.length>0){
-    opts+=`<optgroup label="🔴 SEDANG BERTUGAS (di kelas lain)">`;
-    sedang.forEach(g=>{
-      const rehat=WM.length-(bebanSemasa[g.nama]||0);
-      opts+=`<option value="${g.nama}">${pendekNama(g.nama)} — di ${sibuk[g.nama]} (rehat ${rehat}W)</option>`;
-    });
-    opts+=`</optgroup>`;
-  }
-  return opts;
-}
-
-// Kira beban semasa SEMUA guru dari jadual yang dipaparkan (kelas + dewan)
-function kiraBebanSemasaSemua(){
-  const beban={};
-  document.querySelectorAll('.slot-sel').forEach(s=>{
-    if(s.value){beban[s.value]=(beban[s.value]||0)+1;}
-  });
-  return beban;
-}
-
-// Kira guru mana sedang bertugas (dan di mana) pada waktu tertentu
-function guruSibukPadaWaktu(wBil){
-  const sibuk={}; // nama => lokasi
-  document.querySelectorAll(`.slot-sel[data-waktu="${wBil}"]`).forEach(s=>{
-    if(s.value){const kls=s.getAttribute('data-kelas');sibuk[s.value]=kls;}
-  });
-  return sibuk;
-}
-
-// Segarkan dropdown dengan status terkini bila guru klik
-function segarDropdown(el){
+// Buka pop-up pilih guru untuk satu slot
+let _slotAktif=null;
+function bukaPilihGuru(el){
+  _slotAktif=el;
   const wBil=el.getAttribute('data-waktu');
   const namaKelas=el.getAttribute('data-kelas');
   const atas=el.getAttribute('data-atas')==='true';
-  const terpilih=el.value;
+  const terpilih=el.getAttribute('data-nama');
   const kelas=KELAS.find(k=>k.nama===namaKelas);
   if(!kelas)return;
   const reliefPool=GURU.filter(g=>g.status==='available');
-  // Simpan pilihan semasa, bina semula opsi
-  el.innerHTML=binaOpsiDropdown(wBil,terpilih,kelas,atas,reliefPool);
-  el.value=terpilih;
+  const sibuk=guruSibukPadaWaktu(wBil);
+  const beban=kiraBebanSemasaSemua();
+
+  const free=[],sedang=[];
+  reliefPool.forEach(g=>{
+    if(atas&&g.slipDisc)return;
+    if(!fokusBoleh(g,kelas))return;
+    if(g.nama===terpilih)return;
+    if(sibuk[g.nama])sedang.push(g); else free.push(g);
+  });
+  free.sort((a,b)=>(beban[a.nama]||0)-(beban[b.nama]||0));
+  sedang.sort((a,b)=>(beban[a.nama]||0)-(beban[b.nama]||0));
+
+  const wInfo=WAKTU.find(x=>x.bil==wBil);
+  let html=`<div class="pop-head"><div><b>${namaKelas}</b> · Waktu ${wBil} (${wInfo?wInfo.mula+'–'+wInfo.tamat:''})</div><div class="pop-tutup" onclick="tutupPilihGuru()">✕</div></div>`;
+  html+=`<div class="pop-cari-wrap"><input class="pop-cari" id="pop-cari" placeholder="🔍 Cari nama..." oninput="tapisPilihGuru(this.value)"></div>`;
+  html+=`<div class="pop-senarai" id="pop-senarai">`;
+  // Pilihan kosongkan
+  html+=`<div class="pop-item pop-kosong" onclick="pilihGuru('')">⊘ Kosongkan slot ini</div>`;
+  // Guru sekarang
+  if(terpilih&&terpilih!=='—'){
+    html+=`<div class="pop-label">✓ Guru Sekarang</div>`;
+    html+=`<div class="pop-item pop-pilih" onclick="pilihGuru('${terpilih.replace(/'/g,"\\'")}')">${pendekNama(terpilih)} <span class="pop-tag-now">sekarang</span></div>`;
+  }
+  // Guru free
+  if(free.length>0){
+    html+=`<div class="pop-label">🟢 Boleh Masuk (free)</div>`;
+    free.forEach((g,i)=>{
+      const rehat=WM.length-(beban[g.nama]||0);
+      html+=`<div class="pop-item" data-nama-l="${g.nama.toLowerCase()}" onclick="pilihGuru('${g.nama.replace(/'/g,"\\'")}')">${i===0?'⭐ ':''}${pendekNama(g.nama)} <span class="pop-rehat">rehat ${rehat}W</span></div>`;
+    });
+  }
+  // Guru sibuk
+  if(sedang.length>0){
+    html+=`<div class="pop-label">🔴 Sedang Bertugas (di kelas lain)</div>`;
+    sedang.forEach(g=>{
+      html+=`<div class="pop-item pop-sibuk" data-nama-l="${g.nama.toLowerCase()}" onclick="pilihGuru('${g.nama.replace(/'/g,"\\'")}')">${pendekNama(g.nama)} <span class="pop-di">di ${sibuk[g.nama]}</span></div>`;
+    });
+  }
+  html+=`</div>`;
+  document.getElementById('pop-pilih-guru').innerHTML=html;
+  document.getElementById('pop-pilih-overlay').classList.add('buka');
+  setTimeout(()=>{const c=document.getElementById('pop-cari');if(c)c.focus();},50);
 }
 
-function tukarSlot(el){
-  const nama=el.value;const wBil=el.getAttribute('data-waktu');
-  if(!nama){el.classList.add('kosong');}
-  else{
-    el.classList.remove('kosong');
-    // Anti-pertindihan: bila guru ditarik ke sini, slot lama dia jadi kosong → auto isi
+function tutupPilihGuru(){
+  document.getElementById('pop-pilih-overlay').classList.remove('buka');
+  _slotAktif=null;
+}
+
+function tapisPilihGuru(teks){
+  const cari=teks.toLowerCase();
+  document.querySelectorAll('#pop-senarai .pop-item[data-nama-l]').forEach(item=>{
+    const nama=item.getAttribute('data-nama-l');
+    item.style.display=(!cari||nama.includes(cari))?'':'none';
+  });
+}
+
+// Pilih guru untuk slot aktif
+function pilihGuru(nama){
+  if(!_slotAktif)return;
+  const wBil=_slotAktif.getAttribute('data-waktu');
+  // Set nama baru
+  _slotAktif.setAttribute('data-nama',nama);
+  _slotAktif.textContent=nama?pendekNama(nama):'+ pilih';
+  if(nama)_slotAktif.classList.remove('kosong'); else _slotAktif.classList.add('kosong');
+  // Anti-pertindihan: kosongkan guru sama dalam waktu sama, auto isi yang kosong
+  if(nama){
     document.querySelectorAll(`.slot-sel[data-waktu="${wBil}"]`).forEach(s=>{
-      if(s!==el&&s.value===nama){
-        s.value='';s.classList.add('kosong');
-        autoIsiSlot(s); // auto cadang guru paling rehat untuk slot yang baru kosong
+      if(s!==_slotAktif&&s.getAttribute('data-nama')===nama){
+        s.setAttribute('data-nama','');s.textContent='+ pilih';s.classList.add('kosong');
+        autoIsiSlot(s);
       }
     });
   }
   kiraSemulaBeban();
-}
-
-// Auto isi slot kosong dengan guru paling banyak rehat (yang free pada waktu itu)
-function autoIsiSlot(el){
-  const wBil=el.getAttribute('data-waktu');
-  const namaKelas=el.getAttribute('data-kelas');
-  const atas=el.getAttribute('data-atas')==='true';
-  const kelas=KELAS.find(k=>k.nama===namaKelas);
-  if(!kelas)return;
-  const sibuk=guruSibukPadaWaktu(wBil);
-  const beban=kiraBebanSemasaSemua();
-  // Calon: guru available, free pada waktu ni, hormati slip disc & fokus
-  let calon=GURU.filter(g=>g.status==='available').filter(g=>{
-    if(atas&&g.slipDisc)return false;
-    if(!fokusBoleh(g,kelas))return false;
-    if(sibuk[g.nama])return false; // mesti free
-    return true;
-  });
-  if(calon.length===0)return; // tiada guru free — biar kosong (bos uruskan manual)
-  // Pilih paling banyak rehat (beban paling rendah)
-  calon.sort((a,b)=>(beban[a.nama]||0)-(beban[b.nama]||0));
-  const pilih=calon[0];
-  // Segarkan dropdown & set nilai
-  el.innerHTML=binaOpsiDropdown(wBil,pilih.nama,kelas,atas,GURU.filter(g=>g.status==='available'));
-  el.value=pilih.nama;
-  el.classList.remove('kosong');
+  tutupPilihGuru();
 }
 
 function kiraSemulaBeban(){
   const beban={};
   GURU.filter(g=>g.status==='available').forEach(g=>beban[g.nama]=0);
-  document.querySelectorAll('.slot-sel').forEach(s=>{if(s.value&&beban[s.value]!==undefined)beban[s.value]++;});
+  document.querySelectorAll('.slot-sel').forEach(s=>{const n=s.getAttribute('data-nama');if(n&&beban[n]!==undefined)beban[n]++;});
   const box=document.getElementById('beban-box');
   if(box)box.innerHTML=binaBeban(beban);
 }
@@ -852,40 +852,16 @@ function binaAmaran(amaranKelas,beban){
 
 // EKSPORT
 function prepEksport(on){
-  // Tukar dropdown jadi teks supaya nampak elok dalam imej
-  document.querySelectorAll('.slot-sel').forEach(sel=>{
-    if(on){
-      // Guna VALUE (nama guru sebenar) bukan teks opsi — elak teks "(sekarang)" atau label
-      const val=sel.value;
-      const txt=val?pendekNama(val):'[KOSONG]';
-      const sp=document.createElement('span');sp.className='tmp-eksport';sp.style.fontWeight='600';sp.style.fontSize='10px';sp.style.color=val?'#1E88E5':'#E53935';sp.textContent=txt;
-      sel.style.display='none';sel.parentNode.insertBefore(sp,sel);
-    }
-    else{sel.style.display='';const t=sel.parentNode.querySelector('.tmp-eksport');if(t)t.remove();}
-  });
-  // Buka penuh semua kawasan skrol supaya jadual tak terpotong
+  // Sel .slot-sel kini div bersih (papar nama je) — cuma buka scroll untuk eksport penuh
   document.querySelectorAll('.scroll-x').forEach(sx=>{
     if(on){sx.dataset.ovx=sx.style.overflowX||'';sx.style.overflowX='visible';sx.style.width='max-content';}
     else{sx.style.overflowX=sx.dataset.ovx||'';sx.style.width='';}
   });
 }
 
-// Cetak dengan dropdown ditukar jadi teks bersih dahulu
+// Cetak terus (sel dah papar nama bersih, print CSS handle saiz)
 function cetakBersih(){
-  // Tukar dropdown jadi teks (buang "sekarang" dll), tapi jangan buka scroll (print CSS handle)
-  document.querySelectorAll('.slot-sel').forEach(sel=>{
-    const val=sel.value;
-    const sp=document.createElement('span');sp.className='tmp-cetak';sp.style.fontWeight='600';sp.style.fontSize='inherit';sp.style.color=val?'#1E88E5':'#E53935';sp.textContent=val?pendekNama(val):'[KOSONG]';
-    sel.style.display='none';sel.parentNode.insertBefore(sp,sel);
-  });
-  // Print, kemudian pulihkan
-  setTimeout(()=>{
-    window.print();
-    setTimeout(()=>{
-      document.querySelectorAll('.slot-sel').forEach(sel=>{sel.style.display='';});
-      document.querySelectorAll('.tmp-cetak').forEach(t=>t.remove());
-    },300);
-  },100);
+  window.print();
 }
 
 function eksportImej(callback){
