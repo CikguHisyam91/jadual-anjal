@@ -432,14 +432,16 @@ function agihAdil(kelasKosong,guruRelief,saizBlok,toleransi){
 }
 
 // ENJIN BERSEPADU: Kelas Tahap 1 + Dewan diimbang sebagai SATU kolam guru
-// dewanPerlu: bilangan guru jaga Dewan setiap waktu. guruDewanTag: guru yang ditag khas untuk Dewan
+// dewanPerlu: bilangan guru jaga Dewan setiap waktu. guruDewanTag: guru tag khas Dewan (tak masuk kelas)
 function agihBersepadu(kelasT1, dewanPerlu, guruRelief, saizBlok, toleransi, guruDewanTag){
   saizBlok=saizBlok||2; toleransi=(toleransi!==undefined)?toleransi:1;
   guruDewanTag=guruDewanTag||[];
-  // Gabung guru relief + guru tag-Dewan ke dalam satu kolam beban
-  const semuaGuru=[...guruRelief];
-  guruDewanTag.forEach(g=>{if(!semuaGuru.find(x=>x.nama===g.nama))semuaGuru.push(g);});
   const namaDewanTag=new Set(guruDewanTag.map(g=>g.nama));
+  // Guru relief untuk KELAS (tidak termasuk guru tag-Dewan)
+  const guruKelas=guruRelief.filter(g=>!namaDewanTag.has(g.nama));
+  // Kolam beban: semua guru (kelas + tag-Dewan)
+  const semuaGuru=[...guruKelas];
+  guruDewanTag.forEach(g=>{if(!semuaGuru.find(x=>x.nama===g.nama))semuaGuru.push(g);});
 
   const beban={};semuaGuru.forEach(g=>beban[g.nama]=0);
   const jadualKelas={};kelasT1.forEach(k=>jadualKelas[k.nama]={});
@@ -447,49 +449,56 @@ function agihBersepadu(kelasT1, dewanPerlu, guruRelief, saizBlok, toleransi, gur
   const amaranKelas=new Set();
   const blokSenarai=buatBlok(saizBlok);
 
-  const destinasi=[];
-  kelasT1.forEach(k=>destinasi.push({jenis:'kelas',kelas:k}));
-  // Pastikan slot Dewan cukup untuk guru tag-Dewan (minimum dewanPerlu, atau jumlah tag jika lebih)
-  const slotDewan=Math.max(dewanPerlu, guruDewanTag.length);
-  for(let s=0;s<slotDewan;s++)destinasi.push({jenis:'dewan',slot:s});
-
   blokSenarai.forEach((blok,bi)=>{
     const pakai=new Set();
-    destinasi.forEach(d=>{
-      let calon;
-      if(d.jenis==='kelas'){
-        const atas=d.kelas.aras!=='Bawah';
-        // Guru tag-Dewan TAK boleh masuk kelas (mereka khusus Dewan)
-        calon=semuaGuru.filter(g=>{if(pakai.has(g.nama))return false;if(namaDewanTag.has(g.nama))return false;if(atas&&g.slipDisc)return false;if(!fokusBoleh(g,d.kelas))return false;return true;});
-      }else{
-        // Dewan: utamakan guru tag-Dewan, kemudian guru lain yang free
-        calon=semuaGuru.filter(g=>!pakai.has(g.nama));
-      }
-      if(calon.length===0){if(d.jenis==='kelas'){blok.forEach(w=>jadualKelas[d.kelas.nama][w]='—');amaranKelas.add(d.kelas.nama);}return;}
+
+    // ── FASA 1: Isi kelas Tahap 1 (guru tag-Dewan TAK masuk kelas) ──
+    kelasT1.forEach(k=>{
+      const atas=k.aras!=='Bawah';
+      let calon=guruKelas.filter(g=>{if(pakai.has(g.nama))return false;if(atas&&g.slipDisc)return false;if(!fokusBoleh(g,k))return false;return true;});
+      if(calon.length===0){blok.forEach(w=>jadualKelas[k.nama][w]='—');amaranKelas.add(k.nama);return;}
       const bMin=Math.min(...calon.map(g=>beban[g.nama]));
       let pilih=null;
-      // Untuk kelas: utamakan guru yang request kelas ini (tapi hanya jika beban munasabah, elak terkunci)
-      if(d.jenis==='kelas'){
-        const peminta=calon.find(g=>g.requestKelas===d.kelas.nama);
-        if(peminta&&beban[peminta.nama]<=bMin+1)pilih=peminta;
-      }
-      // Untuk Dewan: utamakan guru tag-Dewan
-      if(!pilih&&d.jenis==='dewan'){
-        const tagGuru=calon.filter(g=>namaDewanTag.has(g.nama)).sort((a,b)=>beban[a.nama]-beban[b.nama]);
-        if(tagGuru.length>0)pilih=tagGuru[0];
-      }
-      // Kesinambungan
-      if(!pilih&&bi>0){
-        let gSebNama=null;
-        if(d.jenis==='kelas'){const x=jadualKelas[d.kelas.nama][blokSenarai[bi-1][0]];if(x&&x!=='—')gSebNama=x;}
-        else{const x=jadualDewan[blokSenarai[bi-1][0]];if(x&&x[d.slot])gSebNama=x[d.slot];}
-        if(gSebNama){const gs=calon.find(g=>g.nama===gSebNama);if(gs&&beban[gs.nama]<=bMin+toleransi)pilih=gs;}
-      }
-      if(!pilih){const terendah=calon.filter(g=>beban[g.nama]===bMin);pilih=terendah[0];}
-      if(d.jenis==='kelas')blok.forEach(w=>{jadualKelas[d.kelas.nama][w]=pilih.nama;beban[pilih.nama]++;});
-      else blok.forEach(w=>{jadualDewan[w][d.slot]=pilih.nama;beban[pilih.nama]++;});
+      // Utamakan guru request kelas ini (jika beban munasabah)
+      const peminta=calon.find(g=>g.requestKelas===k.nama);
+      if(peminta&&beban[peminta.nama]<=bMin+1)pilih=peminta;
+      // Kesinambungan blok sebelum
+      if(!pilih&&bi>0){const x=jadualKelas[k.nama][blokSenarai[bi-1][0]];if(x&&x!=='—'){const gs=calon.find(g=>g.nama===x);if(gs&&beban[gs.nama]<=bMin+toleransi)pilih=gs;}}
+      if(!pilih){calon.sort((a,b)=>beban[a.nama]-beban[b.nama]);pilih=calon[0];}
+      blok.forEach(w=>{jadualKelas[k.nama][w]=pilih.nama;beban[pilih.nama]++;});
       pakai.add(pilih.nama);
     });
+
+    // ── FASA 2: Isi Dewan — kolam = guru tag-Dewan + guru relief yang masih free ──
+    // Guru tag-Dewan WAJIB rehat setiap blok ke-3 supaya tak terbeban sepanjang hari
+    for(let slot=0;slot<dewanPerlu;slot++){
+      // Kira guru tag yang jaga blok sebelum (untuk paksa rehat)
+      let calon=semuaGuru.filter(g=>{
+        if(pakai.has(g.nama))return false;
+        // Rehat paksa: guru tag-Dewan yang jaga blok sebelum, beri laluan pada guru lain jika ada
+        if(namaDewanTag.has(g.nama)&&bi>=1){
+          const b1=blokSenarai[bi-1];
+          const jaga1=(jadualDewan[b1[0]]||[]).includes(g.nama);
+          // Jika dia jaga blok sebelum DAN ada guru relief lain yang free, dia rehat dulu
+          if(jaga1){
+            const adaGantian=semuaGuru.some(x=>!pakai.has(x.nama)&&!namaDewanTag.has(x.nama)&&beban[x.nama]<=beban[g.nama]+1);
+            if(adaGantian)return false;
+          }
+        }
+        return true;
+      });
+      if(calon.length===0){
+        // Kalau semua guru tag kena rehat & tiada relief, ambil sesiapa yang free
+        calon=semuaGuru.filter(g=>!pakai.has(g.nama));
+      }
+      if(calon.length===0)break;
+      const bMin=Math.min(...calon.map(g=>beban[g.nama]));
+      const terendah=calon.filter(g=>beban[g.nama]===bMin);
+      const tagTerendah=terendah.filter(g=>namaDewanTag.has(g.nama));
+      const pilih=tagTerendah.length>0?tagTerendah[0]:terendah[0];
+      blok.forEach(w=>{jadualDewan[w][slot]=pilih.nama;beban[pilih.nama]++;});
+      pakai.add(pilih.nama);
+    }
   });
   WM.forEach(w=>{jadualDewan[w]=jadualDewan[w].filter(x=>x);});
   return {jadualKelas,jadualDewan,beban,amaranKelas:[...amaranKelas]};
@@ -527,16 +536,28 @@ function pendekNama(nama){
   return n.split(/\s+/).slice(0,3).join(' ');
 }
 
-// Enjin giliran Dewan: 2 guru jaga setiap waktu, bergilir supaya semua ada rehat
+// Enjin giliran Dewan: guru jaga bergilir supaya SEMUA dapat rehat
 function agihDewan(guruDewan, perWaktu){
   const beban={};guruDewan.forEach(g=>beban[g.nama]=0);
   const jadual={}; // jadual[waktuBil] = [nama guru...]
-  WM.forEach(w=>{
-    jadual[w]=[];
-    // Pilih 'perWaktu' guru dengan beban paling rendah
-    const calon=[...guruDewan].sort((a,b)=>beban[a.nama]-beban[b.nama]);
-    const bil=Math.min(perWaktu,calon.length);
-    for(let i=0;i<bil;i++){jadual[w].push(calon[i].nama);beban[calon[i].nama]++;}
+  const blokSenarai=buatBlok(2); // blok 1 jam supaya rehat bermakna
+  // Bilangan guru jaga setiap waktu: tak boleh lebih dari guru yang ada
+  const pw=Math.min(perWaktu,guruDewan.length);
+  blokSenarai.forEach((blok,bi)=>{
+    // Pilih guru beban terendah; jika boleh, beri laluan pada guru yang rehat blok sebelum
+    let calon=[...guruDewan];
+    if(bi>0&&guruDewan.length>pw){
+      const guruSebelum=new Set();
+      (blokSenarai[bi-1]).forEach(w=>{(jadual[w]||[]).forEach(n=>guruSebelum.add(n));});
+      const rehatDulu=calon.filter(g=>!guruSebelum.has(g.nama));
+      if(rehatDulu.length>=pw)calon=rehatDulu;
+    }
+    calon.sort((a,b)=>beban[a.nama]-beban[b.nama]);
+    const bil=Math.min(pw,calon.length);
+    const pilih=calon.slice(0,bil);
+    // Set jadual untuk setiap waktu dalam blok, tambah beban ikut bilangan waktu
+    blok.forEach(w=>{jadual[w]=pilih.map(g=>g.nama);});
+    pilih.forEach(g=>{beban[g.nama]+=blok.length;});
   });
   return {jadual,beban,guruDewan};
 }
@@ -583,9 +604,12 @@ function janaInfografik(){
     let dewanTagHtml='';
     if(guruDewanTag.length>0){
       const jdwn=agihDewan(guruDewanTag,2);
-      const jadualDewanFormat={jadual:jdwn,guruDewan:senaraiGuruDewan(jdwn,guruDewanTag),beban:kiraBebanDewan(jdwn)};
+      const jadualDewanFormat={jadual:jdwn.jadual,guruDewan:guruDewanTag,beban:jdwn.beban};
       _jadualDewanSimpan=jadualDewanFormat;
-      dewanTagHtml=`<div class="dewan-box"><div class="dewan-title">🏛️ GURU BERTUGAS DI DEWAN</div><div class="dewan-list">${guruDewanTag.map(g=>pendekNama(g.nama)).join(' · ')} — diagih masa secara adil di Dewan.</div></div><div class="info-stitle">👮 Jadual Giliran Guru Jaga Dewan (Ikut Waktu)</div>${binaTabelDewan(jadualDewanFormat)}`;
+      // Amaran jika guru Dewan terlalu sikit (mereka tak dapat rehat)
+      let notaRehat='diagih masa secara adil di Dewan.';
+      if(guruDewanTag.length<=2)notaRehat='⚠️ Hanya '+guruDewanTag.length+' guru — mereka jaga penuh tanpa rehat. Tag 3+ guru Dewan untuk mereka boleh bergilir rehat.';
+      dewanTagHtml=`<div class="dewan-box"><div class="dewan-title">🏛️ GURU BERTUGAS DI DEWAN</div><div class="dewan-list">${guruDewanTag.map(g=>pendekNama(g.nama)).join(' · ')} — ${notaRehat}</div></div><div class="info-stitle">👮 Jadual Giliran Guru Jaga Dewan (Ikut Waktu)</div>${binaTabelDewan(jadualDewanFormat)}`;
     }else{
       _jadualDewanSimpan=null;
     }
@@ -601,8 +625,9 @@ function janaInfografik(){
     const hasil=agihBersepadu(kelasT1, 2, reliefPool, 2, 0, guruDewanTag);
     jadualSemasa={jadual:hasil.jadualKelas,kelas:kelasT1};
 
-    // Tukar format jadualDewan untuk paparan & tab per-guru
-    const jadualDewanFormat={jadual:hasil.jadualDewan,guruDewan:senaraiGuruDewan(hasil.jadualDewan,reliefPool),beban:kiraBebanDewan(hasil.jadualDewan)};
+    // Tukar format jadualDewan untuk paparan & tab per-guru (gabung relief + tag-Dewan)
+    const semuaGuruDewan=[...reliefPool,...guruDewanTag];
+    const jadualDewanFormat={jadual:hasil.jadualDewan,guruDewan:senaraiGuruDewan(hasil.jadualDewan,semuaGuruDewan),beban:kiraBebanDewan(hasil.jadualDewan)};
     _jadualDewanSimpan=jadualDewanFormat;
 
     let dewan=`<div class="dewan-box"><div class="dewan-title">🏛️ GABUNG DI DEWAN (TAHAP 2)</div><div class="dewan-list">`;
