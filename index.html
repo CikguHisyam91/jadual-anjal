@@ -325,6 +325,7 @@ function renderSenarai(){
             <option value="1" ${g.fokus==='1'?'selected':''}>🎯 Tahap 1 Sahaja</option>
             <option value="2" ${g.fokus==='2'?'selected':''}>🎯 Tahap 2 Sahaja</option>
             <option value="aras_bawah" ${g.fokus==='aras_bawah'?'selected':''}>🎯 Aras Bawah Sahaja</option>
+            <option value="dewan_sahaja" ${g.fokus==='dewan_sahaja'?'selected':''}>🏛️ Dewan Sahaja</option>
           </select>
           <select class="fokus-select" onchange="setRequest(${i},this.value)" title="Request kelas khusus" style="border-color:${g.requestKelas?'#8E24AA':'#E0E0E0'}">
             ${opsiRequest}
@@ -379,7 +380,7 @@ function renderUrus(){
 }
 
 // ====== ENJIN AGIHAN ======
-function fokusBoleh(g,k){if(g.fokus==='aras_bawah')return k.aras==='Bawah';if(g.fokus==='1')return k.tahap===1;if(g.fokus==='2')return k.tahap===2;return true;}
+function fokusBoleh(g,k){if(g.fokus==='dewan_sahaja')return false;if(g.fokus==='aras_bawah')return k.aras==='Bawah';if(g.fokus==='1')return k.tahap===1;if(g.fokus==='2')return k.tahap===2;return true;}
 // Bahagikan 10 waktu mengajar kepada blok (saiz 2 = 1 jam, saiz 1 = 30 minit)
 function buatBlok(saizBlok){
   const pagi=[1,2,3,4,5],petang=[7,8,9,10,11],blok=[];
@@ -559,8 +560,10 @@ function binaTabelDewan(hasilDewan){
 
 function janaInfografik(){
   const guruAbsent=GURU.filter(g=>g.status==='absent');
-  const reliefPool=GURU.filter(g=>g.status==='available');
-  const guruDewanTag=GURU.filter(g=>g.status==='dewan'); // guru yang ditag khas untuk Dewan
+  // Guru fokus 'dewan_sahaja' dikeluarkan dari reliefPool kelas, masuk pool Dewan
+  const reliefPool=GURU.filter(g=>g.status==='available'&&g.fokus!=='dewan_sahaja');
+  // Guru Dewan = yang ditag status Dewan + yang fokus Dewan Sahaja
+  const guruDewanTag=GURU.filter(g=>g.status==='dewan'||(g.status==='available'&&g.fokus==='dewan_sahaja'));
   const kritikal=guruAbsent.length>10;
   const tC=fmtC(tarikhTerpilih),tP=fmtP(tarikhTerpilih);
   const now=new Date();const masa=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
@@ -569,19 +572,22 @@ function janaInfografik(){
   let bilKelasRelief=0; // untuk statistik
 
   if(!kritikal){
-    _jadualDewanSimpan=null;
     // MOD NORMAL: hanya kelas yang gurunya tidak hadir perlu relief.
     const bilKelasKosong=Math.min(guruAbsent.length,KELAS.length);
     const kelasKosong=KELAS.slice(0,bilKelasKosong);
     bilKelasRelief=kelasKosong.length;
-    // Gabung guru available + guru dewan-tag (dewan-tag boleh masuk kelas juga jika perlu, tapi diutamakan Dewan)
     const hasil=agihAdil(kelasKosong,reliefPool,2,0);
     jadualSemasa={jadual:hasil.jadual,kelas:kelasKosong};
     const amaranHtml=binaAmaran(hasil.amaranKelas,hasil.beban);
-    // Jika ada guru tag Dewan dalam mod normal, papar nota
+    // Jika ada guru Dewan (tag status atau fokus dewan_sahaja), bina jadual giliran Dewan
     let dewanTagHtml='';
     if(guruDewanTag.length>0){
-      dewanTagHtml=`<div class="dewan-box"><div class="dewan-title">🏛️ GURU BERTUGAS DI DEWAN</div><div class="dewan-list">${guruDewanTag.map(g=>pendekNama(g.nama)).join(' · ')} — ditugaskan di Dewan sepanjang hari.</div></div>`;
+      const jdwn=agihDewan(guruDewanTag,2);
+      const jadualDewanFormat={jadual:jdwn,guruDewan:senaraiGuruDewan(jdwn,guruDewanTag),beban:kiraBebanDewan(jdwn)};
+      _jadualDewanSimpan=jadualDewanFormat;
+      dewanTagHtml=`<div class="dewan-box"><div class="dewan-title">🏛️ GURU BERTUGAS DI DEWAN</div><div class="dewan-list">${guruDewanTag.map(g=>pendekNama(g.nama)).join(' · ')} — diagih masa secara adil di Dewan.</div></div><div class="info-stitle">👮 Jadual Giliran Guru Jaga Dewan (Ikut Waktu)</div>${binaTabelDewan(jadualDewanFormat)}`;
+    }else{
+      _jadualDewanSimpan=null;
     }
     isi=dewanTagHtml+(kelasKosong.length===0?'<div style="text-align:center;padding:20px;color:#9E9E9E;font-style:italic">✅ Tiada guru tidak hadir — semua kelas ada guru.</div>':`${amaranHtml}<div class="info-stitle">📋 Jadual Relief Ikut Waktu (Boleh Edit)</div>${binaTabel(kelasKosong,hasil.jadual,reliefPool)}<div class="info-stitle">⚖️ Beban Guru Relief (Adil + Rehat)</div><div id="beban-box">${binaBeban(hasil.beban)}</div>`);
   } else {
