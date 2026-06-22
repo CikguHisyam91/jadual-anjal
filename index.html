@@ -175,30 +175,43 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--teks);min-h
 .btn-png{padding:11px 14px;background:var(--hijau);color:white;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;}
 .btn-pdf{padding:11px 14px;background:var(--merah);color:white;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;}
 .btn-tutup{padding:11px 16px;background:#ECEFF1;color:#546E7A;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;}
-@page{size:A4 landscape;margin:8mm;}
+@page{size:A4 landscape;margin:10mm;}
+/* Kontena cetak tersembunyi pada skrin */
+#area-cetak-print{display:none;}
 @media print{
-  body>*:not(#modal){display:none!important;}
-  #modal{display:block!important;position:static!important;background:white!important;padding:0!important;}
-  .modal-box{box-shadow:none!important;border-radius:0!important;max-width:100%!important;max-height:none!important;overflow:visible!important;width:100%!important;}
-  .modal-scroll{overflow:visible!important;max-height:none!important;}
-  .modal-actions{display:none!important;}
-  .modal-overlay{display:block!important;position:static!important;background:white!important;padding:0!important;}
-  .scroll-x{overflow:visible!important;width:100%!important;}
-  /* Kecilkan jadual supaya semua 11 waktu muat lebar A4 landscape */
-  .jt{font-size:7.5px!important;width:100%!important;table-layout:fixed!important;}
-  .jt th{font-size:6.5px!important;padding:3px 1px!important;min-width:0!important;}
-  .jt th:first-child{min-width:60px!important;}
-  .jt th:not(:first-child){min-width:0!important;}
-  .jt td{font-size:7px!important;padding:3px 1px!important;}
-  .slot-sel{font-size:7px!important;padding:1px!important;}
-  .tmp-eksport{font-size:7px!important;}
-  .info-body{padding:8px 12px!important;}
-  .info-header{padding:10px 14px!important;}
-  .beban-chip{font-size:7px!important;padding:1px 5px!important;}
-  /* Elak jadual terpotong tengah-tengah baris */
-  .jt tr{page-break-inside:avoid!important;}
-  .info-stitle{page-break-after:avoid!important;}
-  .dewan-box,.kantin-box{page-break-inside:avoid!important;}
+  /* Sembunyikan SEMUA kecuali kontena cetak khas */
+  body>*{display:none!important;}
+  body.mod-cetak #area-cetak-print{display:block!important;}
+  /* Header cetak */
+  .cetak-header{text-align:center;margin-bottom:10px;border-bottom:2px solid #1a237e;padding-bottom:8px;}
+  .cetak-sekolah{font-size:10px;color:#607D8B;letter-spacing:1px;font-weight:600;}
+  .cetak-tajuk{font-size:18px;font-weight:800;color:#1a237e;margin:3px 0;}
+  .cetak-meta{font-size:11px;color:#37474F;}
+  /* Setiap page */
+  .cetak-page{page-break-inside:avoid;}
+  .cetak-page-break{page-break-before:always;}
+  /* Jadual cetak — muat A4 landscape, tulisan sebesar mungkin */
+  .ct-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
+  .ct-tbl th{background:#1a237e;color:white;font-weight:700;padding:7px 2px;text-align:center;border:1px solid #fff;}
+  .ct-tbl th .ct-masa{font-size:7px;opacity:0.85;font-weight:400;}
+  .ct-tbl td{font-weight:600;padding:7px 2px;text-align:center;border:1px solid #CFD8DC;color:#1565C0;line-height:1.3;}
+  .ct-tbl .ct-kelas{background:#F5F7FA;color:#1a237e;font-weight:800;text-align:left;padding-left:6px;}
+  .ct-tbl .ct-aras{font-size:7px;color:#90A4AE;font-weight:400;}
+  .ct-tbl .ct-kosong{color:#E53935;background:#FFEBEE;font-weight:700;}
+  .ct-tbl tbody tr:nth-child(even) td{background:#FAFBFC;}
+  .ct-tbl tbody tr:nth-child(even) td.ct-kelas{background:#EEF1F5;}
+  .ct-tbl tr{page-break-inside:avoid;}
+  /* Jadual RELIEF: 11 waktu — saiz dikecilkan sikit supaya muat lebar, tapi masih jelas */
+  .ct-relief th{font-size:9px;}
+  .ct-relief td{font-size:9.5px;}
+  .ct-relief .ct-kelas{width:78px;}
+  .ct-relief .ct-rehat-col{width:26px;background:#FFF8E1;color:#F57F17;}
+  .ct-relief td.ct-rehat-col{color:#FBC02D;}
+  /* Jadual DEWAN: 3 lajur je — tulisan BESAR */
+  .ct-dewan th{font-size:13px;}
+  .ct-dewan td{font-size:13px;text-align:left;padding-left:12px;color:#1565C0;}
+  .ct-dewan th:nth-child(1),.ct-dewan td:nth-child(1){width:90px;text-align:center;}
+  .ct-dewan th:nth-child(2),.ct-dewan td:nth-child(2){width:130px;}
 }
 </style>
 </head>
@@ -257,6 +270,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--teks);min-h
   <div class="modal-actions"><button class="btn-cetak" onclick="cetakBersih()">🖨️ Cetak</button><button class="btn-png" onclick="eksportPNG()">📸 PNG</button><button class="btn-pdf" onclick="eksportPDF()">📄 PDF</button><button class="btn-tutup" onclick="document.getElementById('modal').classList.remove('aktif')">✕</button></div>
   </div>
 </div>
+<!-- Kontena khas untuk cetak 2 page (tersembunyi pada skrin) -->
+<div id="area-cetak-print"></div>
 <!-- POP-UP PILIH GURU -->
 <div class="pop-pilih-overlay" id="pop-pilih-overlay" onclick="if(event.target===this)tutupPilihGuru()">
   <div class="pop-pilih-box" id="pop-pilih-guru"></div>
@@ -855,6 +870,49 @@ function kiraSemulaBeban(){
   if(box)box.innerHTML=binaBeban(beban);
 }
 
+// Kira beban semasa SEMUA guru dari jadual yang dipaparkan
+function kiraBebanSemasaSemua(){
+  const beban={};
+  document.querySelectorAll('.slot-sel').forEach(s=>{
+    const nama=s.getAttribute('data-nama');
+    if(nama){beban[nama]=(beban[nama]||0)+1;}
+  });
+  return beban;
+}
+
+// Kira guru mana sedang bertugas (dan di mana) pada waktu tertentu
+function guruSibukPadaWaktu(wBil){
+  const sibuk={}; // nama => lokasi
+  document.querySelectorAll(`.slot-sel[data-waktu="${wBil}"]`).forEach(s=>{
+    const nama=s.getAttribute('data-nama');
+    if(nama){const kls=s.getAttribute('data-kelas');sibuk[nama]=kls;}
+  });
+  return sibuk;
+}
+
+// Auto isi slot kosong dengan guru paling banyak rehat (yang free pada waktu itu)
+function autoIsiSlot(el){
+  const wBil=el.getAttribute('data-waktu');
+  const namaKelas=el.getAttribute('data-kelas');
+  const atas=el.getAttribute('data-atas')==='true';
+  const kelas=KELAS.find(k=>k.nama===namaKelas);
+  if(!kelas)return;
+  const sibuk=guruSibukPadaWaktu(wBil);
+  const beban=kiraBebanSemasaSemua();
+  let calon=GURU.filter(g=>g.status==='available').filter(g=>{
+    if(atas&&g.slipDisc)return false;
+    if(!fokusBoleh(g,kelas))return false;
+    if(sibuk[g.nama])return false;
+    return true;
+  });
+  if(calon.length===0)return;
+  calon.sort((a,b)=>(beban[a.nama]||0)-(beban[b.nama]||0));
+  const pilih=calon[0];
+  el.setAttribute('data-nama',pilih.nama);
+  el.textContent=pendekNama(pilih.nama);
+  el.classList.remove('kosong');
+}
+
 function binaBeban(beban){
   const e=Object.entries(beban).filter(([n,b])=>b>0).sort((a,b)=>b[1]-a[1]);
   if(e.length===0)return '<div style="font-size:11px;color:#9E9E9E">Tiada guru ditugaskan.</div>';
@@ -890,9 +948,84 @@ function prepEksport(on){
   });
 }
 
-// Cetak terus (sel dah papar nama bersih, print CSS handle saiz)
+// Cetak dengan jadual pecah 2 page: Pagi (W1-W5) & Petang (W7-W11) — tulisan besar & jelas
 function cetakBersih(){
-  window.print();
+  const wrap=document.getElementById('area-cetak-print');
+  wrap.innerHTML=binaKandunganCetak();
+  document.body.classList.add('mod-cetak');
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>{document.body.classList.remove('mod-cetak');wrap.innerHTML='';},400);
+  },100);
+}
+
+// Bina kandungan cetak: Dewan satu page, Relief kelas satu page (setiap satu penuh 11 waktu)
+function binaKandunganCetak(){
+  const tP=fmtP(tarikhTerpilih);
+  const now=new Date();const masa=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const header=(tajuk)=>`<div class="cetak-header"><div class="cetak-sekolah">SK KING EDWARD VII (1) · TAIPING, PERAK</div><div class="cetak-tajuk">${tajuk}</div><div class="cetak-meta">${tP} &nbsp;|&nbsp; Jana: ${masa}</div></div>`;
+  let html='';
+
+  // PAGE 1: JADUAL DEWAN (jika ada)
+  if(_jadualDewanSimpan&&_jadualDewanSimpan.guruDewan&&_jadualDewanSimpan.guruDewan.length>0){
+    html+=`<div class="cetak-page">${header('🏛️ JADUAL GILIRAN GURU JAGA DEWAN')}${binaTabelDewanCetak(_jadualDewanSimpan)}</div>`;
+  }
+
+  // PAGE 2: JADUAL RELIEF KELAS (penuh 11 waktu)
+  if(jadualSemasa&&jadualSemasa.kelas&&jadualSemasa.kelas.length>0){
+    const dataKelas=ambilDataJadualSemasa();
+    const adaDewan=(_jadualDewanSimpan&&_jadualDewanSimpan.guruDewan&&_jadualDewanSimpan.guruDewan.length>0);
+    html+=`<div class="cetak-page ${adaDewan?'cetak-page-break':''}">${header('📋 JADUAL RELIEF KELAS')}${binaTabelReliefCetak(jadualSemasa.kelas,dataKelas)}</div>`;
+  }
+  return html;
+}
+
+// Ambil data jadual semasa dari sel (supaya edit manual bos termasuk)
+function ambilDataJadualSemasa(){
+  const data={};
+  document.querySelectorAll('#area-cetak .slot-sel').forEach(s=>{
+    const k=s.getAttribute('data-kelas'),w=s.getAttribute('data-waktu'),n=s.getAttribute('data-nama');
+    if(!data[k])data[k]={};
+    data[k][w]=n||'';
+  });
+  return data;
+}
+
+// Bina jadual relief kelas untuk cetak — penuh 11 waktu, muat A4 landscape
+function binaTabelReliefCetak(kelasList,data){
+  let head='<th class="ct-kelas">KELAS</th>';
+  WAKTU.forEach(w=>{
+    if(w.rehat){head+=`<th class="ct-rehat-col">☕<br><span class="ct-masa">REHAT</span></th>`;}
+    else{head+=`<th>W${w.bil}<br><span class="ct-masa">${w.mula}</span></th>`;}
+  });
+  let body='';
+  kelasList.forEach(k=>{
+    let row=`<td class="ct-kelas"><b>${k.nama}</b><br><span class="ct-aras">${k.aras}</span></td>`;
+    WAKTU.forEach(w=>{
+      if(w.rehat){row+=`<td class="ct-rehat-col">·</td>`;}
+      else{
+        const nama=(data[k.nama]&&data[k.nama][w.bil])?data[k.nama][w.bil]:'';
+        const txt=nama?pendekNama(nama):'—';
+        row+=`<td class="${nama?'':'ct-kosong'}">${txt}</td>`;
+      }
+    });
+    body+=`<tr>${row}</tr>`;
+  });
+  return `<table class="ct-tbl ct-relief"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+// Bina jadual Dewan untuk cetak
+function binaTabelDewanCetak(hasilDewan){
+  let body='';
+  WAKTU.forEach(w=>{
+    if(w.rehat){
+      body+=`<tr><td><b>REHAT</b></td><td>${w.mula}–${w.tamat}</td><td>Semua rehat serentak</td></tr>`;
+    }else{
+      const guru=(hasilDewan.jadual[w.bil]||[]).map(n=>pendekNama(n)).join('  +  ');
+      body+=`<tr><td><b>W${w.bil}</b></td><td>${w.mula}–${w.tamat}</td><td>${guru||'—'}</td></tr>`;
+    }
+  });
+  return `<table class="ct-tbl ct-dewan"><thead><tr><th>WAKTU</th><th>MASA</th><th>GURU BERTUGAS DI DEWAN</th></tr></thead><tbody>${body}</tbody></table>`;
 }
 
 function eksportImej(callback){
