@@ -178,6 +178,27 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--teks);min-h
 @page{size:A4 landscape;margin:10mm;}
 /* Kontena cetak tersembunyi pada skrin */
 #area-cetak-print{display:none;}
+/* Gaya jadual besar untuk PNG (versi skrin, tersembunyi di luar skrin) */
+.png-besar .cetak-header{text-align:center;margin-bottom:14px;border-bottom:3px solid #1a237e;padding-bottom:10px;}
+.png-besar .cetak-sekolah{font-size:14px;color:#607D8B;letter-spacing:1px;font-weight:600;}
+.png-besar .cetak-tajuk{font-size:26px;font-weight:800;color:#1a237e;margin:5px 0;}
+.png-besar .cetak-meta{font-size:15px;color:#37474F;}
+.png-besar .ct-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
+.png-besar .ct-tbl th{background:#1a237e;color:white;font-weight:700;padding:11px 4px;text-align:center;border:1px solid #fff;}
+.png-besar .ct-tbl th .ct-masa{font-size:11px;opacity:0.85;font-weight:400;}
+.png-besar .ct-tbl td{font-weight:600;padding:11px 4px;text-align:center;border:1px solid #CFD8DC;color:#1565C0;line-height:1.3;}
+.png-besar .ct-tbl .ct-kelas{background:#F5F7FA;color:#1a237e;font-weight:800;text-align:left;padding-left:10px;}
+.png-besar .ct-tbl .ct-aras{font-size:11px;color:#90A4AE;font-weight:400;}
+.png-besar .ct-tbl .ct-kosong{color:#E53935;background:#FFEBEE;font-weight:700;}
+.png-besar .ct-tbl tbody tr:nth-child(even) td{background:#FAFBFC;}
+.png-besar .ct-relief th{font-size:14px;}
+.png-besar .ct-relief td{font-size:15px;}
+.png-besar .ct-relief .ct-kelas{width:120px;}
+.png-besar .ct-relief .ct-rehat-col{width:44px;background:#FFF8E1;color:#F57F17;}
+.png-besar .ct-dewan th{font-size:17px;}
+.png-besar .ct-dewan td{font-size:17px;text-align:left;padding-left:16px;color:#1565C0;}
+.png-besar .ct-dewan th:nth-child(1),.png-besar .ct-dewan td:nth-child(1){width:110px;text-align:center;}
+.png-besar .ct-dewan th:nth-child(2),.png-besar .ct-dewan td:nth-child(2){width:150px;}
 @media print{
   /* Sembunyikan SEMUA kecuali kontena cetak khas */
   body>*{display:none!important;}
@@ -267,7 +288,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--teks);min-h
 <button class="fab" onclick="janaInfografik()">⚙️ Jana Jadual Anjal</button>
 <div class="modal-overlay" id="modal" onclick="tutupModal(event)">
   <div class="modal-box"><div class="modal-scroll"><div id="area-cetak"></div></div>
-  <div class="modal-actions"><button class="btn-cetak" onclick="cetakBersih()">🖨️ Cetak</button><button class="btn-png" onclick="eksportPNG()">📸 PNG</button><button class="btn-pdf" onclick="eksportPDF()">📄 PDF</button><button class="btn-tutup" onclick="document.getElementById('modal').classList.remove('aktif')">✕</button></div>
+  <div class="modal-actions"><button class="btn-cetak" onclick="cetakBersih()">🖨️ Cetak</button><button class="btn-png" onclick="eksportPNGKelas()">📸 PNG Kelas</button><button class="btn-png" onclick="eksportPNGDewan()" style="background:var(--merah)">🏛️ PNG Dewan</button><button class="btn-pdf" onclick="eksportPDF()">📄 PDF</button><button class="btn-tutup" onclick="document.getElementById('modal').classList.remove('aktif')">✕</button></div>
   </div>
 </div>
 <!-- Kontena khas untuk cetak 2 page (tersembunyi pada skrin) -->
@@ -580,18 +601,33 @@ function agihDewan(guruDewan, perWaktu){
 function binaTabelDewan(hasilDewan){
   if(!hasilDewan.guruDewan||hasilDewan.guruDewan.length===0)
     return '<div style="font-size:11px;color:#9E9E9E;padding:8px">Tiada guru tersedia untuk jaga Dewan.</div>';
-  let head='<th>Waktu</th><th>Masa</th><th>Guru Bertugas di Dewan</th>';
+  const perWaktu=hasilDewan.perWaktu||3;
+  let head='<th>Waktu</th><th>Masa</th>';
+  for(let i=0;i<perWaktu;i++)head+=`<th>Guru ${i+1}</th>`;
   let body='';
   WAKTU.forEach(w=>{
     if(w.rehat){
-      body+=`<tr><td class="sel-rehat">☕ REHAT</td><td class="sel-rehat">${w.mula}–${w.tamat}</td><td class="sel-rehat">Semua rehat serentak</td></tr>`;
+      let sel='<td class="sel-rehat">☕ REHAT</td><td class="sel-rehat">'+w.mula+'–'+w.tamat+'</td>';
+      for(let i=0;i<perWaktu;i++)sel+='<td class="sel-rehat">·</td>';
+      body+=`<tr>${sel}</tr>`;
     }else{
       const guru=hasilDewan.jadual[w.bil]||[];
-      const namaList=guru.length>0?guru.map(n=>pendekNama(n)).join(' &nbsp;+&nbsp; '):'<span style="color:#E53935">⚠️ Perlu guru</span>';
-      body+=`<tr><td style="font-weight:700">W${w.bil}</td><td style="color:#607D8B">${w.mula}–${w.tamat}</td><td style="font-weight:600;color:#1E88E5">${namaList}</td></tr>`;
+      let sel=`<td style="font-weight:700">W${w.bil}</td><td style="color:#607D8B;font-size:9px">${w.mula}–${w.tamat}</td>`;
+      for(let i=0;i<perWaktu;i++){
+        const nama=guru[i]||'';
+        sel+=`<td>${binaDropdownDewan(w.bil,i,nama)}</td>`;
+      }
+      body+=`<tr>${sel}</tr>`;
     }
   });
-  return `<div class="scroll-x"><table class="jt"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div><div style="font-size:9px;color:#90A4AE;margin-top:4px">👮 ${hasilDewan.guruDewan.length} guru jaga Dewan bergilir · 2 guru setiap waktu · semua ada ruang rehat</div>`;
+  return `<div class="scroll-x"><table class="jt"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div><div style="font-size:9px;color:#90A4AE;margin-top:4px">👮 ${hasilDewan.guruDewan.length} guru jaga Dewan bergilir · ${perWaktu} guru setiap waktu · 💡 Klik nama untuk tukar guru</div>`;
+}
+
+// Sel boleh klik untuk jadual Dewan
+function binaDropdownDewan(wBil,slot,terpilih){
+  const kosong=(!terpilih||terpilih==='—')?'kosong':'';
+  const papar=(terpilih&&terpilih!=='—')?pendekNama(terpilih):'+ pilih';
+  return `<div class="slot-sel ${kosong}" data-dewan="1" data-slot="${slot}" data-waktu="${wBil}" data-nama="${terpilih||''}" onclick="bukaPilihGuruDewan(this)">${papar}</div>`;
 }
 
 function janaInfografik(){
@@ -618,8 +654,8 @@ function janaInfografik(){
     // Jika ada guru Dewan (tag status atau fokus dewan_sahaja), bina jadual giliran Dewan
     let dewanTagHtml='';
     if(guruDewanTag.length>0){
-      const jdwn=agihDewan(guruDewanTag,2);
-      const jadualDewanFormat={jadual:jdwn.jadual,guruDewan:guruDewanTag,beban:jdwn.beban};
+      const jdwn=agihDewan(guruDewanTag,3);
+      const jadualDewanFormat={jadual:jdwn.jadual,guruDewan:guruDewanTag,beban:jdwn.beban,perWaktu:3};
       _jadualDewanSimpan=jadualDewanFormat;
       // Amaran jika guru Dewan terlalu sikit (mereka tak dapat rehat)
       let notaRehat='diagih masa secara adil di Dewan.';
@@ -637,12 +673,12 @@ function janaInfografik(){
 
     // Guru tag-Dewan diletakkan di Dewan dulu; selebihnya kongsi kolam bersepadu
     // ENJIN BERSEPADU: Dewan + Kelas Tahap 1 diimbang sebagai SATU kolam guru
-    const hasil=agihBersepadu(kelasT1, 2, reliefPool, 2, 0, guruDewanTag);
+    const hasil=agihBersepadu(kelasT1, 3, reliefPool, 2, 0, guruDewanTag);
     jadualSemasa={jadual:hasil.jadualKelas,kelas:kelasT1};
 
     // Tukar format jadualDewan untuk paparan & tab per-guru (gabung relief + tag-Dewan)
     const semuaGuruDewan=[...reliefPool,...guruDewanTag];
-    const jadualDewanFormat={jadual:hasil.jadualDewan,guruDewan:senaraiGuruDewan(hasil.jadualDewan,semuaGuruDewan),beban:kiraBebanDewan(hasil.jadualDewan)};
+    const jadualDewanFormat={jadual:hasil.jadualDewan,guruDewan:senaraiGuruDewan(hasil.jadualDewan,semuaGuruDewan),beban:kiraBebanDewan(hasil.jadualDewan),perWaktu:3};
     _jadualDewanSimpan=jadualDewanFormat;
 
     let dewan=`<div class="dewan-box"><div class="dewan-title">🏛️ GABUNG DI DEWAN (TAHAP 2)</div><div class="dewan-list">`;
@@ -880,14 +916,82 @@ function kiraBebanSemasaSemua(){
   return beban;
 }
 
-// Kira guru mana sedang bertugas (dan di mana) pada waktu tertentu
+// Kira guru mana sedang bertugas (dan di mana) pada waktu tertentu — termasuk Dewan
 function guruSibukPadaWaktu(wBil){
   const sibuk={}; // nama => lokasi
   document.querySelectorAll(`.slot-sel[data-waktu="${wBil}"]`).forEach(s=>{
     const nama=s.getAttribute('data-nama');
-    if(nama){const kls=s.getAttribute('data-kelas');sibuk[nama]=kls;}
+    if(nama){
+      const lokasi=s.getAttribute('data-dewan')?'DEWAN':s.getAttribute('data-kelas');
+      sibuk[nama]=lokasi;
+    }
   });
   return sibuk;
+}
+
+// Buka pop-up pilih guru untuk slot DEWAN
+function bukaPilihGuruDewan(el){
+  _slotAktif=el;
+  const wBil=el.getAttribute('data-waktu');
+  const terpilih=el.getAttribute('data-nama');
+  // Kolam guru Dewan: guru available + guru tag Dewan + guru fokus dewan_sahaja
+  const reliefPool=GURU.filter(g=>g.status==='available'||g.status==='dewan');
+  const sibuk=guruSibukPadaWaktu(wBil);
+  const beban=kiraBebanSemasaSemua();
+
+  const free=[],sedang=[];
+  reliefPool.forEach(g=>{
+    if(g.nama===terpilih)return;
+    if(sibuk[g.nama])sedang.push(g); else free.push(g);
+  });
+  free.sort((a,b)=>(beban[a.nama]||0)-(beban[b.nama]||0));
+  sedang.sort((a,b)=>(beban[a.nama]||0)-(beban[b.nama]||0));
+
+  const wInfo=WAKTU.find(x=>x.bil==wBil);
+  let html=`<div class="pop-head"><div><b>🏛️ DEWAN</b> · Waktu ${wBil} (${wInfo?wInfo.mula+'–'+wInfo.tamat:''})</div><div class="pop-tutup" onclick="tutupPilihGuru()">✕</div></div>`;
+  html+=`<div class="pop-cari-wrap"><input class="pop-cari" id="pop-cari" placeholder="🔍 Cari nama..." oninput="tapisPilihGuru(this.value)"></div>`;
+  html+=`<div class="pop-senarai" id="pop-senarai">`;
+  html+=`<div class="pop-item pop-kosong" onclick="pilihGuruDewan('')">⊘ Kosongkan slot ini</div>`;
+  if(terpilih&&terpilih!=='—'){
+    html+=`<div class="pop-label">✓ Guru Sekarang</div>`;
+    html+=`<div class="pop-item pop-pilih" onclick="pilihGuruDewan('${terpilih.replace(/'/g,"\\'")}')">${pendekNama(terpilih)} <span class="pop-tag-now">sekarang</span></div>`;
+  }
+  if(free.length>0){
+    html+=`<div class="pop-label">🟢 Boleh Masuk (free)</div>`;
+    free.forEach((g,i)=>{
+      const rehat=WM.length-(beban[g.nama]||0);
+      html+=`<div class="pop-item" data-nama-l="${g.nama.toLowerCase()}" onclick="pilihGuruDewan('${g.nama.replace(/'/g,"\\'")}')">${i===0?'⭐ ':''}${pendekNama(g.nama)} <span class="pop-rehat">rehat ${rehat}W</span></div>`;
+    });
+  }
+  if(sedang.length>0){
+    html+=`<div class="pop-label">🔴 Sedang Bertugas (di tempat lain)</div>`;
+    sedang.forEach(g=>{
+      html+=`<div class="pop-item pop-sibuk" data-nama-l="${g.nama.toLowerCase()}" onclick="pilihGuruDewan('${g.nama.replace(/'/g,"\\'")}')">${pendekNama(g.nama)} <span class="pop-di">di ${sibuk[g.nama]}</span></div>`;
+    });
+  }
+  html+=`</div>`;
+  document.getElementById('pop-pilih-guru').innerHTML=html;
+  document.getElementById('pop-pilih-overlay').classList.add('buka');
+  setTimeout(()=>{const c=document.getElementById('pop-cari');if(c)c.focus();},50);
+}
+
+// Pilih guru untuk slot Dewan
+function pilihGuruDewan(nama){
+  if(!_slotAktif)return;
+  const wBil=_slotAktif.getAttribute('data-waktu');
+  _slotAktif.setAttribute('data-nama',nama);
+  _slotAktif.textContent=nama?pendekNama(nama):'+ pilih';
+  if(nama)_slotAktif.classList.remove('kosong'); else _slotAktif.classList.add('kosong');
+  // Anti-pertindihan: kosongkan guru sama dalam waktu sama (kelas atau dewan)
+  if(nama){
+    document.querySelectorAll(`.slot-sel[data-waktu="${wBil}"]`).forEach(s=>{
+      if(s!==_slotAktif&&s.getAttribute('data-nama')===nama){
+        s.setAttribute('data-nama','');s.textContent='+ pilih';s.classList.add('kosong');
+      }
+    });
+  }
+  kiraSemulaBeban();
+  tutupPilihGuru();
 }
 
 // Auto isi slot kosong dengan guru paling banyak rehat (yang free pada waktu itu)
@@ -1026,6 +1130,54 @@ function binaTabelDewanCetak(hasilDewan){
     }
   });
   return `<table class="ct-tbl ct-dewan"><thead><tr><th>WAKTU</th><th>MASA</th><th>GURU BERTUGAS DI DEWAN</th></tr></thead><tbody>${body}</tbody></table>`;
+}
+
+// Render satu elemen HTML jadi PNG (guna jadual cetak besar)
+function renderPNG(htmlKandungan,namaFail){
+  // Buat kontena sementara dengan jadual besar
+  const tmp=document.createElement('div');
+  tmp.style.cssText='position:fixed;left:-9999px;top:0;width:1400px;background:white;padding:24px;font-family:Inter,sans-serif;';
+  tmp.className='png-besar';
+  tmp.innerHTML=htmlKandungan;
+  document.body.appendChild(tmp);
+  setTimeout(()=>{
+    html2canvas(tmp,{scale:2,backgroundColor:'#ffffff',width:1400,windowWidth:1400}).then(canvas=>{
+      document.body.removeChild(tmp);
+      const link=document.createElement('a');
+      link.download=namaFail;
+      link.href=canvas.toDataURL('image/png');link.click();
+    }).catch(e=>{document.body.removeChild(tmp);alert('Ralat PNG: '+e.message);});
+  },200);
+}
+
+// PNG Jadual Relief Kelas (besar & jelas)
+function eksportPNGKelas(){
+  if(!jadualSemasa||!jadualSemasa.kelas||jadualSemasa.kelas.length===0){alert('Tiada jadual relief kelas untuk dieksport.');return;}
+  const tP=fmtP(tarikhTerpilih);
+  const data=ambilDataJadualSemasa();
+  const header=`<div class="cetak-header"><div class="cetak-sekolah">SK KING EDWARD VII (1) · TAIPING, PERAK</div><div class="cetak-tajuk">📋 JADUAL RELIEF KELAS</div><div class="cetak-meta">${tP}</div></div>`;
+  renderPNG(header+binaTabelReliefCetak(jadualSemasa.kelas,data),'Jadual_Relief_Kelas_'+fmtC(tarikhTerpilih).replace(/\//g,'-')+'.png');
+}
+
+// PNG Jadual Dewan (besar & jelas)
+function eksportPNGDewan(){
+  if(!_jadualDewanSimpan||!_jadualDewanSimpan.guruDewan||_jadualDewanSimpan.guruDewan.length===0){alert('Tiada jadual Dewan. Tetapkan guru ke Dewan dahulu.');return;}
+  const tP=fmtP(tarikhTerpilih);
+  // Ambil data Dewan terkini dari sel (termasuk edit manual)
+  const dataDewan=ambilDataDewanSemasa();
+  const header=`<div class="cetak-header"><div class="cetak-sekolah">SK KING EDWARD VII (1) · TAIPING, PERAK</div><div class="cetak-tajuk">🏛️ JADUAL GILIRAN GURU JAGA DEWAN</div><div class="cetak-meta">${tP}</div></div>`;
+  renderPNG(header+binaTabelDewanCetak({jadual:dataDewan}),'Jadual_Dewan_'+fmtC(tarikhTerpilih).replace(/\//g,'-')+'.png');
+}
+
+// Ambil data Dewan terkini dari sel
+function ambilDataDewanSemasa(){
+  const data={};
+  document.querySelectorAll('.slot-sel[data-dewan]').forEach(s=>{
+    const w=s.getAttribute('data-waktu'),n=s.getAttribute('data-nama');
+    if(!data[w])data[w]=[];
+    if(n)data[w].push(n);
+  });
+  return data;
 }
 
 function eksportImej(callback){
